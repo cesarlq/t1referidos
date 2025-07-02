@@ -1,20 +1,16 @@
 import LoginForm from '@/components/admin/LoginForm';
 import React from 'react';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
-import { headers } from 'next/headers'; // Necesario si queremos leer query params, aunque para sesión no directamente.
 
-import LoginForm from '@/components/admin/LoginForm';
-import React from 'react';
-// Las siguientes importaciones están comentadas para el diagnóstico:
+// Las importaciones para Supabase, redirect y headers están intencionalmente comentadas
+// para el paso actual de diagnóstico.
 // import { createSupabaseServerClient } from '@/lib/supabase/server';
 // import { redirect } from 'next/navigation';
 // import { headers } from 'next/headers';
 
-export const dynamic = 'force-dynamic'; // Mantenemos esto por si acaso
+export const dynamic = 'force-dynamic';
 
 export default async function LoginPage() {
-  // --- SECCIÓN DE DIAGNÓSTICO: headers() y getSession() completamente comentados ---
+  // Toda la lógica de obtención de pathname y sesión está comentada para el diagnóstico.
   // console.log("LoginPage Diag: Renderizando LoginForm...");
   // const headerList = headers();
   // const pathname = headerList.get('x-next-pathname') || headerList.get('next-url') || '';
@@ -28,7 +24,6 @@ export default async function LoginPage() {
   // } else {
   //   console.log("LoginPage Diag: No se encontró sesión.");
   // }
-  // --- FIN SECCIÓN DE DIAGNÓSTICO ---
 
   return <LoginForm />;
 }
