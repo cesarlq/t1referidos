@@ -21,23 +21,30 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const headersList = headers();
-  const pathname = headersList.get('x-next-pathname') || headersList.get('next-url') || ''; // 'next-url' es para versiones más nuevas o edge
+  // --- SECCIÓN DE DIAGNÓSTICO: headers() y pathname comentados ---
+  // const headersList = headers();
+  // const pathname = headersList.get('x-next-pathname') || headersList.get('next-url') || '';
+  // console.log("AdminLayout Diag: Pathname (comentado):", pathname);
+  // --- FIN SECCIÓN DE DIAGNÓSTICO ---
 
-  // Solo aplicar lógica de autenticación y rol si NO estamos en la página de login
-  if (pathname !== '/admin/login') {
-    const supabase = createSupabaseServerClient();
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  // --- SECCIÓN DE DIAGNÓSTICO: Lógica de sesión Supabase ---
+  // La condición if (pathname !== '/admin/login') está eliminada temporalmente.
+  // La lógica de sesión se ejecuta para todas las rutas bajo /admin, incluyendo /admin/login.
 
-    if (sessionError) {
-      console.error("Error getting session in admin layout:", sessionError);
-      return redirect('/admin/login?error=session_error');
-    }
+  console.log("AdminLayout Diag: Intentando obtener sesión...");
+  const supabase = createSupabaseServerClient();
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-    if (!session) {
-      return redirect('/admin/login');
-    }
-
+  if (sessionError) {
+    console.error("AdminLayout Diag: Error al obtener la sesión:", sessionError.message);
+    // No redirigir para aislar el error primario.
+  } else if (!session) {
+    console.log("AdminLayout Diag: No se encontró sesión.");
+    // No redirigir. Si esto ocurre en /admin/login y causa un error de cookies(),
+    // es una pista importante.
+  } else {
+    console.log("AdminLayout Diag: Sesión encontrada para el usuario:", session.user.email);
+    // Lógica de roles (con redirecciones comentadas para evitar bucles durante el diagnóstico)
     const { data: userProfile, error: profileError } = await supabase
       .from('usuarios')
       .select('id, rol')
@@ -45,20 +52,19 @@ export default async function AdminLayout({
       .single<UserProfile>();
 
     if (profileError) {
-      console.error("Error fetching user profile in admin layout:", profileError);
-      await supabase.auth.signOut();
-      return redirect('/admin/login?error=profile_error');
-    }
-
-    if (!userProfile || userProfile.rol !== 'administrador') {
-      console.warn(`User ${session.user.email} does not have admin role or profile. Role: ${userProfile?.rol}`);
-      await supabase.auth.signOut();
-      return redirect('/admin/login?error=unauthorized');
+      console.error("AdminLayout Diag: Error al obtener el perfil del usuario:", profileError.message);
+      // await supabase.auth.signOut(); // Comentado para diagnóstico
+      // return redirect('/admin/login?error=profile_error'); // Comentado para diagnóstico
+    } else if (!userProfile || userProfile.rol !== 'administrador') {
+      console.warn(`AdminLayout Diag: El usuario ${session.user.email} no tiene rol de administrador o perfil. Rol: ${userProfile?.rol}`);
+      // await supabase.auth.signOut(); // Comentado para diagnóstico
+      // return redirect('/admin/login?error=unauthorized'); // Comentado para diagnóstico
+    } else {
+      console.log("AdminLayout Diag: El usuario es administrador.");
     }
   }
+  // --- FIN SECCIÓN DE DIAGNÓSTICO ---
 
-  // Renderizar el contenido (hijos) para todas las rutas bajo /admin,
-  // incluyendo /admin/login si no se redirigió antes.
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Aquí podrías tener una barra de navegación común para el panel de admin */}
