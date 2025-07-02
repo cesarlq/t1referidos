@@ -2,6 +2,7 @@ import React from 'react';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 
 // Definición del tipo UserRole (debería coincidir con tu enum/type en la DB)
 type UserRole = 'administrador' | 'referidor'; // Asegúrate que 'administrador' sea el valor exacto en tu DB
@@ -18,50 +19,44 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createSupabaseServerClient();
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  const headersList = headers();
+  const pathname = headersList.get('x-next-pathname') || headersList.get('next-url') || ''; // 'next-url' es para versiones más nuevas o edge
 
-  if (sessionError) {
-    console.error("Error getting session in admin layout:", sessionError);
-    // Podrías redirigir a una página de error o al login.
-    redirect('/admin/login?error=session_error');
+  // Solo aplicar lógica de autenticación y rol si NO estamos en la página de login
+  if (pathname !== '/admin/login') {
+    const supabase = createSupabaseServerClient();
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      console.error("Error getting session in admin layout:", sessionError);
+      return redirect('/admin/login?error=session_error');
+    }
+
+    if (!session) {
+      return redirect('/admin/login');
+    }
+
+    const { data: userProfile, error: profileError } = await supabase
+      .from('usuarios')
+      .select('id, rol')
+      .eq('id', session.user.id)
+      .single<UserProfile>();
+
+    if (profileError) {
+      console.error("Error fetching user profile in admin layout:", profileError);
+      await supabase.auth.signOut();
+      return redirect('/admin/login?error=profile_error');
+    }
+
+    if (!userProfile || userProfile.rol !== 'administrador') {
+      console.warn(`User ${session.user.email} does not have admin role or profile. Role: ${userProfile?.rol}`);
+      await supabase.auth.signOut();
+      return redirect('/admin/login?error=unauthorized');
+    }
   }
 
-  if (!session) {
-    // Si no hay sesión, redirigir a login.
-    // Asegurarse que la página de login no esté bajo este layout para evitar bucle.
-    // La ruta de login es /admin/login, así que necesitamos una condición para no redirigir si ya estamos ahí.
-    // Esto se maneja mejor si el login está fuera de /admin/* o si el middleware lo gestiona.
-    // Por ahora, si estamos en /admin/login, este layout no debería aplicarse o el `children` sería la página de login.
-    // Next.js es inteligente con los layouts, el layout de /admin no se aplica a /admin/login si login tiene su propio layout o es una page.tsx simple.
-    redirect('/admin/login');
-  }
-
-  // Si hay sesión, verificar el rol del usuario.
-  // Hacemos una consulta a la tabla `usuarios` para obtener el rol.
-  const { data: userProfile, error: profileError } = await supabase
-    .from('usuarios') // Nombre de tu tabla de perfiles/usuarios
-    .select('id, rol') // Selecciona los campos que necesitas, especialmente 'rol'
-    .eq('id', session.user.id)
-    .single<UserProfile>(); // Especifica el tipo esperado
-
-  if (profileError) {
-    console.error("Error fetching user profile in admin layout:", profileError);
-    // Puede que el perfil no exista aún si el usuario se acaba de registrar y no hay un trigger/función que lo cree.
-    // O un error de red.
-    // Redirigir a login con un error o a una página de error específica.
-    await supabase.auth.signOut(); // Cerrar sesión si el perfil no se puede cargar
-    redirect('/admin/login?error=profile_error');
-  }
-
-  if (!userProfile || userProfile.rol !== 'administrador') {
-    // Si no tiene perfil o el rol no es 'administrador', cerrar sesión y redirigir.
-    console.warn(`User ${session.user.email} does not have admin role or profile. Role: ${userProfile?.rol}`);
-    await supabase.auth.signOut();
-    redirect('/admin/login?error=unauthorized');
-  }
-
-  // Si todo está bien (sesión activa y rol de administrador), renderizar el contenido.
+  // Renderizar el contenido (hijos) para todas las rutas bajo /admin,
+  // incluyendo /admin/login si no se redirigió antes.
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Aquí podrías tener una barra de navegación común para el panel de admin */}
