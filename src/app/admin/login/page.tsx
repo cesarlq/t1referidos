@@ -4,6 +4,8 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers'; // Necesario si queremos leer query params, aunque para sesión no directamente.
 
+export const dynamic = 'force-dynamic';
+
 export default async function LoginPage() {
   // Verificamos si hay un pathname para asegurar que no estamos en una situación inesperada
   // Esto también ayuda a Next.js a tratar esto como dinámico si es necesario.

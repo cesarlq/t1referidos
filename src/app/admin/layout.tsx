@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 
+export const dynamic = 'force-dynamic';
+
 // Definición del tipo UserRole (debería coincidir con tu enum/type en la DB)
 type UserRole = 'administrador' | 'referidor'; // Asegúrate que 'administrador' sea el valor exacto en tu DB
 
