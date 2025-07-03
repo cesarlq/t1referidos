@@ -33,16 +33,14 @@ interface VacanteCardProps {
 
 const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out border border-gray-200 dark:border-gray-700">
-      <div className="p-6">
+    <div className="w-full bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center">
+      <div className="p-6 flex-grow">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{vacante.titulo_puesto}</h2>
-        {/* Departamento con color primario y un poco más de peso */}
         <p className="text-sm text-primary dark:text-secondary font-semibold mb-3 uppercase tracking-wide">{vacante.departamento}</p>
 
         <div className="mb-5 space-y-2 text-sm text-text_primary_dark dark:text-gray-300">
           <p>
             <strong>Modalidad:</strong>
-            {/* Tag de modalidad con color secundario y texto primario */}
             <span className="capitalize bg-secondary text-primary px-2 py-0.5 rounded-full text-xs font-medium ml-2">
               {vacante.modalidad}
             </span>
@@ -59,7 +57,6 @@ const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) =>
             <p className="mb-1"><strong>Tecnologías:</strong></p>
             <div className="flex flex-wrap gap-2">
               {vacante.tecnologias_requeridas.map((tech, index) => (
-                // Tags de tecnologías con un estilo más neutro o usando el secundario
                 <span
                   key={index}
                   className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium"
@@ -70,14 +67,13 @@ const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) =>
             </div>
           </div>
         </div>
-
-        {/* MUI Button using theme's primary color */}
+      </div>
+      <div className="p-6 sm:pl-0"> {/* Remove left padding on small screens and up for the button container */}
         <Button
           variant="contained"
           color="primary"
-          fullWidth
           onClick={() => onReferirClick(vacante)}
-          // sx={{ py: 1.2, fontSize: '0.875rem', fontWeight: 'bold' }} // Example sx prop if further fine-tuning needed beyond theme
+          sx={{ width: { xs: '100%', sm: 'auto' } }} // Full width on extra-small, auto on small and up
         >
           Referir Candidato
         </Button>

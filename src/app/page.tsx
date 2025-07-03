@@ -114,7 +114,7 @@ export default async function HomePage() {
         {vacantes.length > 0 ? (
           <Grid container spacing={3}> {/* MUI Grid with spacing from theme */}
             {vacantes.map((vacante) => (
-              <Grid item xs={12} sm={6} md={4} key={vacante.id}>
+              <Grid item xs={12} sm={6} md={12} key={vacante.id}>
                 <VacanteCardClientWrapper vacante={vacante} />
               </Grid>
             ))}
