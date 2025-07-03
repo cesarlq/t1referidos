@@ -27,41 +27,53 @@ export interface Vacante {
 
 interface VacanteCardProps {
   vacante: Vacante;
-  onReferirClick: (vacante: Vacante) => void; // Cambiado de vacanteId: string a vacante: Vacante
+  onReferirClick: (vacante: Vacante) => void;
 }
 
 const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out border border-gray-200 dark:border-gray-700">
       <div className="p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{vacante.titulo_puesto}</h2>
-        <p className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold mb-1 uppercase">{vacante.departamento}</p>
-        <div className="mb-4 space-y-2">
-          <p className="text-gray-700 dark:text-gray-300">
-            <strong>Modalidad:</strong> <span className="capitalize bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full text-xs">{vacante.modalidad}</span>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{vacante.titulo_puesto}</h2>
+        {/* Departamento con color primario y un poco más de peso */}
+        <p className="text-sm text-primary dark:text-secondary font-semibold mb-3 uppercase tracking-wide">{vacante.departamento}</p>
+
+        <div className="mb-5 space-y-2 text-sm text-text_primary_dark dark:text-gray-300">
+          <p>
+            <strong>Modalidad:</strong>
+            {/* Tag de modalidad con color secundario y texto primario */}
+            <span className="capitalize bg-secondary text-primary px-2 py-0.5 rounded-full text-xs font-medium ml-2">
+              {vacante.modalidad}
+            </span>
           </p>
           {vacante.ubicacion && (
-            <p className="text-gray-700 dark:text-gray-300"><strong>Ubicación:</strong> {vacante.ubicacion}</p>
+            <p><strong>Ubicación:</strong> {vacante.ubicacion}</p>
           )}
           {vacante.salario_rango_min && vacante.salario_rango_max && (
-            <p className="text-gray-700 dark:text-gray-300">
+            <p>
               <strong>Salario:</strong> ${vacante.salario_rango_min} - ${vacante.salario_rango_max} {vacante.moneda || 'USD'}
             </p>
           )}
           <div>
-            <p className="text-gray-700 dark:text-gray-300 mb-1"><strong>Tecnologías:</strong></p>
+            <p className="mb-1"><strong>Tecnologías:</strong></p>
             <div className="flex flex-wrap gap-2">
               {vacante.tecnologias_requeridas.map((tech, index) => (
-                <span key={index} className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-medium">
+                // Tags de tecnologías con un estilo más neutro o usando el secundario
+                <span
+                  key={index}
+                  className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium"
+                >
                   {tech}
                 </span>
               ))}
             </div>
           </div>
         </div>
+
+        {/* Botón con estilos del theme */}
         <button
-          onClick={() => onReferirClick(vacante)} // Se pasa el objeto vacante completo
-          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+          onClick={() => onReferirClick(vacante)}
+          className="w-full bg-primary hover:bg-primary_hover text-white font-bold py-2.5 px-4 rounded-lg shadow-none transition-colors duration-150 text-sm"
         >
           Referir Candidato
         </button>
