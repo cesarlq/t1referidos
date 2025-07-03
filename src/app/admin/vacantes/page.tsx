@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Vacante } from '@/components/VacanteCard';
 import { EyeIcon, PencilIcon, TrashIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import { revalidatePath } from 'next/cache';
+import DeleteVacanteForm from '@/components/admin/DeleteVacanteForm'; // Importar el nuevo componente
 
 interface AdminVacante extends Vacante {
   vistas_count?: number;
@@ -33,7 +34,6 @@ async function getTodasLasVacantes(): Promise<AdminVacante[]> {
 async function eliminarVacanteAction(formData: FormData) {
   "use server";
   const id = formData.get('id') as string;
-  // Pequeña validación de seguridad y autorización
   const supabase = createSupabaseServerClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('No autenticado.');
@@ -42,7 +42,6 @@ async function eliminarVacanteAction(formData: FormData) {
 
   if (!id) {
     console.error('ID de vacante no proporcionado para eliminar.');
-    // En un caso real, devolverías un objeto de error para mostrar en el cliente.
     return;
   }
 
@@ -50,10 +49,9 @@ async function eliminarVacanteAction(formData: FormData) {
 
   if (error) {
     console.error('Error deleting vacante:', error);
-    // Devolver un objeto de error para el cliente.
     return;
   }
-  revalidatePath('/admin/vacantes'); // Actualiza la cache de la ruta
+  revalidatePath('/admin/vacantes');
 }
 
 
@@ -64,11 +62,12 @@ export default async function AdminVacantesPage() {
     <div className="bg-white shadow-lg rounded-xl p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">Gestionar Vacantes</h1>
-        <Link href="/admin/vacantes/nueva" legacyBehavior>
-          <a className="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white font-semibold text-sm rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 w-full sm:w-auto">
-            <PlusCircleIcon className="h-5 w-5 mr-2" />
-            Agregar Nueva Vacante
-          </a>
+        <Link
+          href="/admin/vacantes/nueva"
+          className="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white font-semibold text-sm rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 w-full sm:w-auto"
+        >
+          <PlusCircleIcon className="h-5 w-5 mr-2" />
+          Agregar Nueva Vacante
         </Link>
       </div>
 
@@ -114,10 +113,12 @@ export default async function AdminVacantesPage() {
                   </td>
                   <td className="px-4 py-4 sm:px-6 whitespace-nowrap text-sm font-medium text-center">
                     <div className="flex items-center justify-center space-x-2 sm:space-x-3">
-                      <Link href={`/admin/vacantes/${vacante.id}/editar`} legacyBehavior>
-                        <a className="text-indigo-600 hover:text-indigo-800 transition-colors" title="Editar">
-                          <PencilIcon className="h-5 w-5" />
-                        </a>
+                      <Link
+                        href={`/admin/vacantes/${vacante.id}/editar`}
+                        className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                        title="Editar"
+                      >
+                        <PencilIcon className="h-5 w-5" />
                       </Link>
                       <form action={eliminarVacanteAction} method="POST" className="inline" onSubmit={(e) => {
                           if (!confirm('¿Estás seguro de que quieres eliminar esta vacante? Esta acción no se puede deshacer.')) {
@@ -129,10 +130,12 @@ export default async function AdminVacantesPage() {
                              <TrashIcon className="h-5 w-5" />
                           </button>
                       </form>
-                      <Link href={`/admin/vacantes/${vacante.id}/referidos`} legacyBehavior>
-                         <a className="text-sky-600 hover:text-sky-800 transition-colors" title="Ver Referidos">
-                           <EyeIcon className="h-5 w-5" />
-                         </a>
+                      <Link
+                        href={`/admin/vacantes/${vacante.id}/referidos`}
+                        className="text-sky-600 hover:text-sky-800 transition-colors"
+                        title="Ver Referidos"
+                      >
+                        <EyeIcon className="h-5 w-5" />
                       </Link>
                     </div>
                   </td>
