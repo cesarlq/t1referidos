@@ -27,22 +27,57 @@ export interface Vacante {
 
 interface VacanteCardProps {
   vacante: Vacante;
+  onReferirClick: (vacante: Vacante) => void;
 }
 
-const VacanteCard: React.FC<VacanteCardProps> = ({ vacante }) => {
+const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) => {
   return (
-    <div style={{ border: '1px solid #ccc', margin: '10px', padding: '10px', borderRadius: '8px' }}>
-      <h2>{vacante.titulo_puesto}</h2>
-      <p><strong>Departamento:</strong> {vacante.departamento}</p>
-      <p><strong>Modalidad:</strong> {vacante.modalidad}</p>
-      {vacante.ubicacion && <p><strong>Ubicación:</strong> {vacante.ubicacion}</p>}
-      {vacante.salario_rango_min && vacante.salario_rango_max && (
-        <p>
-          <strong>Salario:</strong> ${vacante.salario_rango_min} - ${vacante.salario_rango_max} {vacante.moneda || 'USD'}
-        </p>
-      )}
-      <p><strong>Tecnologías:</strong> {vacante.tecnologias_requeridas.join(', ')}</p>
-      <button>Referir Candidato</button>
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out border border-gray-200 dark:border-gray-700">
+      <div className="p-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{vacante.titulo_puesto}</h2>
+        {/* Departamento con color primario y un poco más de peso */}
+        <p className="text-sm text-primary dark:text-secondary font-semibold mb-3 uppercase tracking-wide">{vacante.departamento}</p>
+
+        <div className="mb-5 space-y-2 text-sm text-text_primary_dark dark:text-gray-300">
+          <p>
+            <strong>Modalidad:</strong>
+            {/* Tag de modalidad con color secundario y texto primario */}
+            <span className="capitalize bg-secondary text-primary px-2 py-0.5 rounded-full text-xs font-medium ml-2">
+              {vacante.modalidad}
+            </span>
+          </p>
+          {vacante.ubicacion && (
+            <p><strong>Ubicación:</strong> {vacante.ubicacion}</p>
+          )}
+          {vacante.salario_rango_min && vacante.salario_rango_max && (
+            <p>
+              <strong>Salario:</strong> ${vacante.salario_rango_min} - ${vacante.salario_rango_max} {vacante.moneda || 'USD'}
+            </p>
+          )}
+          <div>
+            <p className="mb-1"><strong>Tecnologías:</strong></p>
+            <div className="flex flex-wrap gap-2">
+              {vacante.tecnologias_requeridas.map((tech, index) => (
+                // Tags de tecnologías con un estilo más neutro o usando el secundario
+                <span
+                  key={index}
+                  className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Botón con estilos del theme */}
+        <button
+          onClick={() => onReferirClick(vacante)}
+          className="w-full bg-primary hover:bg-primary_hover text-white font-bold py-2.5 px-4 rounded-lg shadow-none transition-colors duration-150 text-sm"
+        >
+          Referir Candidato
+        </button>
+      </div>
     </div>
   );
 };

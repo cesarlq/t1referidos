@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabaseClient';
-import VacanteCard, { Vacante } from '@/components/VacanteCard';
+import { Vacante } from '@/components/VacanteCard';
 import React from 'react';
+import VacanteCardClientWrapper from '@/components/VacanteCardClientWrapper';
+import Link from 'next/link';
 
 // Tipos para los enums de Supabase (si los usas directamente en el frontend)
 // Sería ideal generarlos con `supabase gen types typescript > types/supabase.ts`
@@ -46,101 +48,75 @@ async function getActiveVacantes(): Promise<Vacante[]> {
   return data as Vacante[];
 }
 
+
+
 export default async function HomePage() {
   const vacantes = await getActiveVacantes();
 
-  // Esta función se manejará en el cliente cuando se implemente el formulario/modal
-  const handleReferirClick = (vacanteId: string) => {
-    // Por ahora, solo un log. Más adelante mostrará el formulario.
-    console.log(`Referir candidato para la vacante ID: ${vacanteId}`);
-    // Aquí se podría cambiar el estado para mostrar un modal o navegar a una página de formulario.
-    // alert(`Abrir formulario para referir a la vacante ID: ${vacanteId}`);
-  };
-
   return (
-    <main className="container mx-auto px-4 py-8">
-      <header className="mb-12 text-center">
-        <h1 className="text-4xl font-bold text-gray-800">Portal de Referidos Internos</h1>
-        <p className="text-xl text-gray-600 mt-2">Encuentra la oportunidad perfecta y refiere talento.</p>
-      </header>
+    // Aplicando fuente Manrope (ya debería estar en body, pero por si acaso) y un fondo neutro.
+    // El color de texto base será text_primary_dark
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-text_primary_dark">
+      {/* Navegación Superior y Título del Sitio */}
+      {/* Fondo blanco/gris oscuro, sombra sutil. Padding ajustado. */}
+      <nav className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-40">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              {/* Título del sitio con color primario */}
+              <Link href="/" className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+                T1Referidos
+              </Link>
+            </div>
+            <div className="flex items-center">
+              {/* Botón Admin Login con estilos del theme */}
+              <Link
+                href="/admin/login"
+                className="px-4 py-2 bg-primary hover:bg-primary_hover text-white text-sm font-bold rounded-lg shadow-none transition-colors duration-150"
+              >
+                Admin Login
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
 
-      {vacantes.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {vacantes.map((vacante) => (
-            // Necesitamos un componente cliente para manejar el evento onClick del botón.
-            // Por ahora, VacanteCard no es un componente cliente, así que el onClick no funcionará como se espera
-            // si se deja tal cual. Vamos a crear un wrapper o modificar VacanteCard.
-            // Para una solución rápida, envolveremos la lógica del modal/formulario en un componente cliente más adelante.
-            // Por ahora, el console.log no funcionará aquí directamente porque es un server component.
-            // Lo ideal es que el botón "Referir" active un estado en un componente cliente.
-            <VacanteCardClientWrapper key={vacante.id} vacante={vacante} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-gray-700">No hay vacantes activas por el momento.</h2>
-          <p className="text-gray-500 mt-2">Por favor, vuelve a revisar más tarde.</p>
-        </div>
-      )}
-    </main>
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+        {/* Hero Section */}
+        {/* Padding vertical aumentado, borde inferior con color del theme. Texto principal con color oscuro. */}
+        <header className="py-10 md:py-16 text-center border-b border-border_input dark:border-gray-700 mb-12 md:mb-16">
+          <h1 className="text-4xl sm:text-5xl md:text-5xl font-extrabold text-gray-900 dark:text-white pb-3 leading-tight">
+            Encuentra y Refiere Talento Excepcional
+          </h1>
+          <p className="text-base sm:text-lg text-text_primary_dark dark:text-gray-300 mt-4 max-w-xl mx-auto">
+            Explora nuestras vacantes activas y ayúdanos a construir el mejor equipo. Tu red de contactos es invaluable.
+          </p>
+        </header>
+
+        {/* Listado de Vacantes */}
+        {vacantes.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Reducido el gap un poco */}
+            {vacantes.map((vacante) => (
+              <VacanteCardClientWrapper key={vacante.id} vacante={vacante} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+            <h2 className="mt-5 text-xl font-semibold text-gray-900 dark:text-white">No hay vacantes activas por el momento.</h2>
+            <p className="text-text_primary_dark dark:text-gray-400 mt-2 text-sm">
+              ¡Gracias por tu interés! Por favor, vuelve a revisar más tarde o contacta a RRHH.
+            </p>
+          </div>
+        )}
+      </main>
+      <footer className="text-center py-8 mt-12 md:mt-16 border-t border-border_input dark:border-gray-700">
+        <p className="text-xs text-text_primary_dark dark:text-gray-400">
+          Plataforma de Referidos Internos T1Referidos &copy; {new Date().getFullYear()}
+        </p>
+      </footer>
+    </div>
   );
 }
-
-// Wrapper para hacer que VacanteCard funcione con interactividad del lado del cliente
-// sin convertir toda la página en un Client Component.
-// Este componente se creará en un archivo separado.
-// src/components/VacanteCardClientWrapper.tsx
-
-// Por ahora, para que el código actual funcione sin errores, voy a simplificar
-// y el botón "Referir Candidato" no tendrá la interactividad real del lado del cliente aún.
-// La lógica de `handleReferirClick` se moverá a un componente cliente después.
-
-// --- Contenido de src/components/VacanteCardClientWrapper.tsx ---
-// "use client";
-// import VacanteCard, { Vacante } from './VacanteCard'; // Ajusta la ruta si es necesario
-//
-// interface VacanteCardClientWrapperProps {
-//   vacante: Vacante;
-// }
-//
-// const VacanteCardClientWrapper: React.FC<VacanteCardClientWrapperProps> = ({ vacante }) => {
-//   const handleReferirClick = (vacanteId: string) => {
-//     alert(`Formulario para referir a la vacante ID: ${vacanteId}`);
-//     // Lógica para mostrar modal/formulario
-//   };
-//
-//   return <VacanteCard vacante={vacante} onReferirClick={handleReferirClick} />;
-// };
-// export default VacanteCardClientWrapper;
-// --- Fin del contenido de VacanteCardClientWrapper.tsx ---
-
-// Para evitar crear otro archivo ahora mismo, voy a modificar VacanteCard para que no dependa de un onClick
-// que requiera estado de cliente en este momento, o pasar una función no interactiva.
-// La forma más simple es que el botón sea un link a una futura página de referido, o
-// que la interactividad se añada en el siguiente paso.
-
-// Re-ajustando el componente VacanteCard para que el botón no cause problemas en el Server Component.
-// El `onReferirClick` será un simple placeholder por ahora.
-// La verdadera interactividad se construirá cuando hagamos el formulario.
-
-// Simulación de VacanteCardClientWrapper para que el código de page.tsx funcione
-// Esto se moverá a su propio archivo en el siguiente paso.
-const VacanteCardClientWrapper: React.FC<{ vacante: Vacante }> = ({ vacante }) => {
-  "use client"; // Necesario para el event handler
-
-  const handleReferirClick = (vacanteId: string) => {
-    // Esta función se ejecutará en el cliente.
-    // Aquí se gestionará la apertura del modal/formulario.
-    alert(`Abrir formulario para referir a la vacante ID: ${vacanteId}\n(Funcionalidad de modal/formulario pendiente)`);
-    console.log(`Referir candidato para la vacante ID: ${vacanteId}`);
-  };
-
-  return <VacanteCard vacante={vacante} onReferirClick={handleReferirClick} />;
-};
-
-// NOTA: El uso de "use client" dentro de page.tsx como lo he hecho con VacanteCardClientWrapper
-// no es la mejor práctica. Lo ideal es que VacanteCardClientWrapper sea un archivo separado.
-// Haré ese refactor en el siguiente paso si es necesario o cuando implementemos el modal.
-// Por ahora, esto permite que la página se renderice y el botón tenga una alerta básica.
-// También he ajustado el select en getActiveVacantes para que coincida con los campos que usa VacanteCard.
-// y añadido `modalidad` al select.
