@@ -1,12 +1,29 @@
 import LoginForm from '@/components/admin/LoginForm';
 import React from 'react';
 
-// Esta página puede ser un Server Component si no necesita interactividad directa
-// o si el LoginForm maneja toda la lógica del cliente.
-// Si queremos verificar si el usuario ya está logueado y redirigir,
-// necesitaríamos lógica del lado del servidor aquí o en un layout.
+// Las importaciones para Supabase, redirect y headers están intencionalmente comentadas
+// para el paso actual de diagnóstico.
+// import { createSupabaseServerClient } from '@/lib/supabase/server';
+// import { redirect } from 'next/navigation';
+// import { headers } from 'next/headers';
 
-// Por ahora, la mantenemos simple. El LoginForm es un Client Component.
-export default function LoginPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function LoginPage() {
+  // Toda la lógica de obtención de pathname y sesión está comentada para el diagnóstico.
+  // console.log("LoginPage Diag: Renderizando LoginForm...");
+  // const headerList = headers();
+  // const pathname = headerList.get('x-next-pathname') || headerList.get('next-url') || '';
+
+  // const supabase = createSupabaseServerClient();
+  // const { data: { session } } = await supabase.auth.getSession();
+
+  // if (session) {
+  //   console.log("LoginPage Diag: Sesión encontrada, intentando redirigir (comentado)");
+  //   // redirect('/admin/dashboard');
+  // } else {
+  //   console.log("LoginPage Diag: No se encontró sesión.");
+  // }
+
   return <LoginForm />;
 }
