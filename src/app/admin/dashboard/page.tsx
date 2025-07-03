@@ -25,128 +25,67 @@ const LogoutButton = () => {
   );
 };
 
-// --- SECCIÓN DE DIAGNÓSTICO: DEFINICIONES DE FUNCIONES COMENTADAS ---
-// // Funciones para obtener métricas
-// async function getTotalReferencias(): Promise<number> {
-//   const supabase = createSupabaseServerClient();
-//   const { count, error } = await supabase
-//     .from('referencias')
-//     .select('*', { count: 'exact', head: true });
+// Funciones para obtener métricas
+async function getTotalReferencias(): Promise<number> {
+  const supabase = createSupabaseServerClient();
+  const { count, error } = await supabase
+    .from('referencias')
+    .select('*', { count: 'exact', head: true });
 
-//   if (error) {
-//     console.error('Error fetching total referencias:', error);
-//     return 0;
-//   }
-//   return count || 0;
-// }
+  if (error) {
+    console.error('Error fetching total referencias:', error.message);
+    return 0;
+  }
+  return count || 0;
+}
 
-interface VacanteConteoReferencias { // Esta interfaz puede quedar por si se usa en el render
+async function getTotalVacantesActivas(): Promise<number> {
+  const supabase = createSupabaseServerClient();
+  const { count, error } = await supabase
+    .from('vacantes')
+    .select('*', { count: 'exact', head: true })
+    .eq('esta_activa', true);
+
+  if (error) {
+    console.error('Error fetching active vacantes count:', error.message);
+    return 0;
+  }
+  return count || 0;
+}
+
+interface VacanteConteoReferencias {
   id: string;
   titulo_puesto: string;
   conteo_referencias: number;
 }
 
+// La función getVacantesConMasReferencias sigue comentada porque requiere una vista o RPC para ser eficiente,
+// lo cual está fuera del alcance de esta modificación directa de archivo.
 // async function getVacantesConMasReferencias(limit: number = 5): Promise<VacanteConteoReferencias[]> {
-//   const supabase = createSupabaseServerClient();
-//   // Supabase no soporta joins complejos o group by directos en el select de esta forma para conteos agrupados fácilmente
-//   // sin usar RPC (Remote Procedure Calls) o vistas.
-//   // Una forma es obtener todas las referencias y agrupar en JS, o crear una vista/función en Supabase.
-//   // Para simplificar por ahora, podríamos hacer un RPC o una query más compleja si fuera necesario.
-//   // Alternativa: contar referencias por vacante_id.
-
-//   // Usaremos una función RPC si la tenemos, o una aproximación.
-//   // Por ahora, vamos a hacer una llamada que traiga los conteos de referencias por vacante.
-//   // Esto idealmente se haría con una vista o una función en la base de datos para optimizar.
-//   // Ejemplo de RPC (necesitarías crear esta función en tu SQL de Supabase):
-//   /*
-//     create or replace function get_top_vacantes_por_referencias(limit_count integer)
-//     returns table (
-//         id uuid,
-//         titulo_puesto text,
-//         conteo_referencias bigint
-//     )
-//     language sql
-//     as $$
-//         select v.id, v.titulo_puesto, count(r.id) as conteo_referencias
-//         from vacantes v
-//         join referencias r on v.id = r.vacante_id
-//         group by v.id, v.titulo_puesto
-//         order by conteo_referencias desc
-//         limit limit_count;
-//     $$;
-//   */
-//   // Si la función RPC 'get_top_vacantes_por_referencias' existe:
-//   // const { data, error } = await supabase.rpc('get_top_vacantes_por_referencias', { limit_count: limit });
-
-//   // Solución sin RPC por ahora (menos eficiente si hay muchas referencias/vacantes):
-//   // 1. Obtener todas las referencias
-//   // 2. Agruparlas por vacante_id en código
-//   // 3. Obtener los detalles de esas vacantes
-//   // Esto puede ser muy ineficiente.
-
-//   // Una mejor aproximación sin RPC directo, pero aún no ideal para Supabase JS SDK directamente:
-//   // Obtener todas las vacantes y luego para cada una, contar sus referencias. Aún ineficiente.
-
-//   // La forma más directa con Supabase es usar una vista que ya tenga el conteo.
-//   // Supongamos que tienes una vista `vacantes_con_conteo_referencias` que incluye `id, titulo_puesto, conteo_referencias`.
-//   // CREATE VIEW vacantes_con_conteo_referencias AS
-//   // SELECT v.id, v.titulo_puesto, COUNT(r.id) AS conteo_referencias
-//   // FROM vacantes v
-//   // LEFT JOIN referencias r ON v.id = r.vacante_id
-//   // GROUP BY v.id, v.titulo_puesto;
-
-//   // Usando la vista (si la creas):
-//   // const { data, error } = await supabase
-//   //   .from('vacantes_con_conteo_referencias')
-//   //   .select('id, titulo_puesto, conteo_referencias')
-//   //   .order('conteo_referencias', { ascending: false })
-//   //   .limit(limit);
-
-//   // Por ahora, y para mantenerlo simple sin modificar la DB desde aquí,
-//   // devolveré un array vacío. Esta es una limitación de no poder ejecutar SQL complejo directamente.
-//   // En un proyecto real, la creación de la vista o función RPC es la mejor solución.
+//   // ... (implementación original o mejorada con RPC/vista)
 //   console.warn("getVacantesConMasReferencias no está implementado de forma óptima sin una vista o RPC en la DB. Devolviendo array vacío.");
 //   return [];
-
-//   // Si tuvieramos los datos:
-//   // if (error) {
-//   //   console.error('Error fetching top vacantes:', error);
-//   //   return [];
-//   // }
-//   // return data as VacanteConteoReferencias[];
 // }
-// --- FIN SECCIÓN DE DIAGNÓSTICO ---
 
 
 export default async function AdminDashboardPage() {
-  // const supabase = createSupabaseServerClient(); // Eliminado
-  // const { data: { session } } = await supabase.auth.getSession(); // Eliminado
+  // Las llamadas a la base de datos se hacen aquí directamente.
+  const totalReferencias = await getTotalReferencias();
+  const totalVacantesActivas = await getTotalVacantesActivas();
 
-  // if (!session) { // Eliminado - El middleware protege esta ruta
-  //   redirect('/admin/login');
-  // }
+  // La lógica para topVacantes sigue como placeholder ya que su implementación eficiente es más compleja.
+  const topVacantes: VacanteConteoReferencias[] = []; // await getVacantesConMasReferencias(5);
 
-  // Temporalmente, no llamaremos a estas funciones para evitar errores de cookies()
-  // hasta que refactoricemos cómo obtienen datos (ej. Route Handlers o pasados como props).
-  const totalReferencias = 0; // await getTotalReferencias(); // Comentado
-  const topVacantes: VacanteConteoReferencias[] = []; // await getVacantesConMasReferencias(5); // Comentado
-
-  // Obtener nombre del admin (opcional) - Comentado temporalmente
-  // const { data: userProfile } = await supabase // Necesitaría `session` que ya no tenemos aquí
-  //   .from('usuarios')
-  //   .select('nombre, email')
-  //   .eq('id', session.user.id) // session no está definido aquí
-  //   .single();
-
-  const adminName = "Administrador"; // Placeholder // userProfile?.nombre || session?.user?.email || "Admin";
+  // El nombre del admin también se puede obtener si es necesario, pero se mantiene el placeholder por simplicidad
+  // ya que el foco está en las métricas principales.
+  // const adminName = "Administrador";
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-200">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Panel de Administración</h1>
-          {/* <p className="text-gray-600 mt-1">Bienvenido, {adminName}.</p> */}
-          <p className="text-gray-600 mt-1">Bienvenido. (Nombre de admin deshabilitado temporalmente)</p>
+          <p className="text-gray-600 mt-1">Bienvenido.</p>
         </div>
         <LogoutButton />
       </div>
@@ -171,7 +110,7 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Placeholder para otras métricas */}
+          {/* Vacantes Activas */}
           <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
              <div className="flex items-center">
               <div className="p-3 rounded-full bg-green-100 text-green-600 mr-4">
@@ -179,8 +118,7 @@ export default async function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Vacantes Activas</p>
-                {/* Necesitaríamos una función para esto */}
-                <p className="text-3xl font-bold text-gray-800">N/A</p>
+                <p className="text-3xl font-bold text-gray-800">{totalVacantesActivas}</p>
               </div>
             </div>
           </div>
@@ -188,7 +126,7 @@ export default async function AdminDashboardPage() {
       </section>
 
       {/* Sección de Vacantes con más Referencias (si hay datos) */}
-      {topVacantes.length > 0 && (
+      {topVacantes.length > 0 && ( // Esta sección probablemente no se mostrará hasta que topVacantes se implemente
         <section className="mb-10">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">Vacantes Más Populares (por Referencias)</h2>
           <div className="bg-white p-6 rounded-lg shadow-md">
@@ -214,10 +152,10 @@ export default async function AdminDashboardPage() {
                 <h3 className="font-semibold text-lg">Gestionar Vacantes</h3>
                 <p className="text-sm opacity-90">Crear, editar y eliminar listados de vacantes.</p>
             </Link>
-            {/* <Link href="/admin/referencias" className="block p-6 bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow-md transition-colors">
-                <h3 className="font-semibold text-lg">Ver Referencias</h3>
-                <p className="text-sm opacity-90">Revisar y gestionar todas las referencias enviadas.</p>
-            </Link> */}
+            <Link href="/admin/referencias" className="block p-6 bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow-md transition-colors">
+                <h3 className="font-semibold text-lg">Ver Referencias Enviadas</h3>
+                <p className="text-sm opacity-90">Revisar todas las postulaciones referidas y sus detalles.</p>
+            </Link>
         </div>
       </section>
 
