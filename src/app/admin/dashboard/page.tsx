@@ -152,10 +152,10 @@ export default async function AdminDashboardPage() {
                 <h3 className="font-semibold text-lg">Gestionar Vacantes</h3>
                 <p className="text-sm opacity-90">Crear, editar y eliminar listados de vacantes.</p>
             </Link>
-            {/* <Link href="/admin/referencias" className="block p-6 bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow-md transition-colors">
-                <h3 className="font-semibold text-lg">Ver Referencias</h3>
-                <p className="text-sm opacity-90">Revisar y gestionar todas las referencias enviadas.</p>
-            </Link> */}
+            <Link href="/admin/referencias" className="block p-6 bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow-md transition-colors">
+                <h3 className="font-semibold text-lg">Ver Referencias Enviadas</h3>
+                <p className="text-sm opacity-90">Revisar todas las postulaciones referidas y sus detalles.</p>
+            </Link>
         </div>
       </section>
 
