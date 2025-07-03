@@ -3,15 +3,9 @@ import { Vacante } from '@/components/VacanteCard';
 import React from 'react';
 import VacanteCardClientWrapper from '@/components/VacanteCardClientWrapper';
 import Link from 'next/link';
+import { Box, Button, Container, Grid, Typography, AppBar, Toolbar, Paper } from '@mui/material'; // MUI imports
 
-// Tipos para los enums de Supabase (si los usas directamente en el frontend)
-// Sería ideal generarlos con `supabase gen types typescript > types/supabase.ts`
-// y luego importarlos. Por ahora, los defino de forma simplificada si es necesario.
-// export type UserRole = 'referidor' | 'administrador';
-// export type ProcesoEstado = 'recibido' | 'en revisión' | 'entrevista' | 'contratado' | 'rechazado';
-
-
-// Esta función se ejecutará en el servidor para obtener los datos
+// Data fetching function remains the same
 async function getActiveVacantes(): Promise<Vacante[]> {
   const { data, error } = await supabase
     .from('vacantes')
@@ -31,92 +25,133 @@ async function getActiveVacantes(): Promise<Vacante[]> {
       beneficios,
       fecha_publicacion,
       esta_activa
-    `) // Selecciona los campos que necesitas para la tarjeta
+    `)
     .eq('esta_activa', true)
     .order('fecha_publicacion', { ascending: false });
 
   if (error) {
     console.error('Error fetching vacantes:', error);
-    // En un caso real, podrías manejar el error de forma más elegante
-    // o lanzar el error para que un ErrorBoundary lo capture.
     return [];
   }
-
-  // Asegurarse de que los datos coincidan con la interfaz Vacante.
-  // Supabase podría devolver todos los campos de la tabla si no especificas el select.
-  // El select anterior ya limita los campos, pero es buena práctica validar/mapear.
   return data as Vacante[];
 }
-
-
 
 export default async function HomePage() {
   const vacantes = await getActiveVacantes();
 
   return (
-    // Aplicando fuente Manrope (ya debería estar en body, pero por si acaso) y un fondo neutro.
-    // El color de texto base será text_primary_dark
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-text_primary_dark">
-      {/* Navegación Superior y Título del Sitio */}
-      {/* Fondo blanco/gris oscuro, sombra sutil. Padding ajustado. */}
-      <nav className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              {/* Título del sitio con color primario */}
-              <Link href="/" className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
-                T1Referidos
-              </Link>
-            </div>
-            <div className="flex items-center">
-              {/* Botón Admin Login con estilos del theme */}
-              <Link
-                href="/admin/login"
-                className="px-4 py-2 bg-primary hover:bg-primary_hover text-white text-sm font-bold rounded-lg shadow-none transition-colors duration-150"
-              >
-                Admin Login
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' /* Using theme background */ }}>
+      {/* Navigation Bar */}
+      <AppBar position="sticky" sx={{ bgcolor: 'common.white', boxShadow: 1 }}>
+        <Container maxWidth="lg">
+          <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
+            <Typography
+              variant="h5"
+              noWrap
+              component={Link}
+              href="/"
+              sx={{
+                fontWeight: 700,
+                color: 'primary.main', // Using theme primary color
+                textDecoration: 'none',
+                '&:hover': {
+                  opacity: 0.8,
+                },
+              }}
+            >
+              T1Referidos
+            </Typography>
+            <Button
+              variant="contained"
+              component={Link}
+              href="/admin/login"
+              sx={{ fontWeight: 'bold' }}
+            >
+              Admin Login
+            </Button>
+          </Toolbar>
+        </Container>
+      </AppBar>
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
-        {/* Hero Section */}
-        {/* Padding vertical aumentado, borde inferior con color del theme. Texto principal con color oscuro. */}
-        <header className="py-10 md:py-16 text-center border-b border-border_input dark:border-gray-700 mb-12 md:mb-16">
-          <h1 className="text-4xl sm:text-5xl md:text-5xl font-extrabold text-gray-900 dark:text-white pb-3 leading-tight">
+      {/* Hero Section */}
+      <Box
+        sx={{
+          py: { xs: 6, md: 10 },
+          textAlign: 'center',
+          bgcolor: 'secondary.main', // Light pinkish background from theme
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Container maxWidth="md">
+          <Typography
+            variant="h2"
+            component="h1"
+            sx={{
+              fontWeight: 'extrabold',
+              color: 'primary.main', // Prominent red
+              mb: 2,
+              fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
+            }}
+          >
             Encuentra y Refiere Talento Excepcional
-          </h1>
-          <p className="text-base sm:text-lg text-text_primary_dark dark:text-gray-300 mt-4 max-w-xl mx-auto">
-            Explora nuestras vacantes activas y ayúdanos a construir el mejor equipo. Tu red de contactos es invaluable.
-          </p>
-        </header>
+          </Typography>
+          <Typography
+            variant="h6"
+            component="p"
+            color="text.secondary" // Softer text color
+            sx={{ mt: 2, mb: 4, maxWidth: '700px', mx: 'auto' }}
+          >
+            Explora nuestras vacantes activas y ayúdanos a construir el mejor equipo. Tu red de contactos es invaluable para T1.
+          </Typography>
+          {/* Optional: A primary CTA if needed, e.g., linking to a "how to refer" page or directly to vacancies */}
+          {/* For now, the main action is to browse vacancies below */}
+        </Container>
+      </Box>
 
-        {/* Listado de Vacantes */}
+      {/* Main Content: Listado de Vacantes */}
+      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
         {vacantes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Reducido el gap un poco */}
+          <Grid container spacing={3}> {/* MUI Grid with spacing from theme */}
             {vacantes.map((vacante) => (
-              <VacanteCardClientWrapper key={vacante.id} vacante={vacante} />
+              <Grid item xs={12} sm={6} md={4} key={vacante.id}>
+                <VacanteCardClientWrapper vacante={vacante} />
+              </Grid>
             ))}
-          </div>
+          </Grid>
         ) : (
-          <div className="text-center py-16">
-            <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-            </svg>
-            <h2 className="mt-5 text-xl font-semibold text-gray-900 dark:text-white">No hay vacantes activas por el momento.</h2>
-            <p className="text-text_primary_dark dark:text-gray-400 mt-2 text-sm">
+          <Paper elevation={0} sx={{ textAlign: 'center', py: 8, bgcolor: 'transparent' }}>
+            <Box sx={{ color: 'text.disabled', mb: 2 }}> {/* Using theme color for icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ height: '3rem', width: '3rem', margin: 'auto' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+            </Box>
+            <Typography variant="h5" component="h2" sx={{ mb: 1, fontWeight: 'semibold', color: 'text.primary' }}>
+              No hay vacantes activas por el momento.
+            </Typography>
+            <Typography color="text.secondary" sx={{ fontSize: '0.875rem' }}>
               ¡Gracias por tu interés! Por favor, vuelve a revisar más tarde o contacta a RRHH.
-            </p>
-          </div>
+            </Typography>
+          </Paper>
         )}
-      </main>
-      <footer className="text-center py-8 mt-12 md:mt-16 border-t border-border_input dark:border-gray-700">
-        <p className="text-xs text-text_primary_dark dark:text-gray-400">
+      </Container>
+
+      {/* Footer */}
+      <Box
+        component="footer"
+        sx={{
+          textAlign: 'center',
+          py: 3,
+          mt: 'auto', // Pushes footer to bottom if content is short
+          borderTop: 1,
+          borderColor: 'divider',
+          bgcolor: 'background.paper' // Using theme paper background
+        }}
+      >
+        <Typography variant="caption" color="text.secondary">
           Plataforma de Referidos Internos T1Referidos &copy; {new Date().getFullYear()}
-        </p>
-      </footer>
-    </div>
+        </Typography>
+      </Box>
+    </Box>
   );
 }

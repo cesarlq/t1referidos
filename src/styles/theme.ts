@@ -20,10 +20,10 @@ const manrope = {
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#db3b2b'
+      main: '#D90429' // New primary red
     },
     secondary: {
-      main: '#fadede'
+      main: '#fadede' // Kept for now, might adjust later
     },
     error: {
       main: '#FF0000'
@@ -67,7 +67,7 @@ const theme = createTheme({
             boxShadow: 'none',
             '&:hover': {
               boxShadow: 'none',
-              backgroundColor: '#a30000'
+              backgroundColor: '#A80320' // Darker shade of new primary red
             },
             ':disabled': {
               backgroundColor: '#F1B0A9',
@@ -318,10 +318,10 @@ const theme = createTheme({
           padding: '5px 13px',
           fontWeight: 500,
           borderRadius: 7, // Consistent with MuiPaper, MuiSkeleton, etc.
-          color: '#db3b2b', // theme.palette.primary.main
+          color: '#D90429', // theme.palette.primary.main
           [`&.${toggleButtonClasses.selected}`]: {
             backgroundColor: '#fadede', // theme.palette.secondary.main
-            color: '#db3b2b', // theme.palette.primary.main
+            color: '#D90429', // theme.palette.primary.main
             '&:hover': {
               backgroundColor: '#fadede' // theme.palette.secondary.main
             }
