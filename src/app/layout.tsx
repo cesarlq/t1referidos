@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Manrope as FontManrope } from "next/font/google"; // Importar Manrope
 import "./globals.css";
+import ThemeRegistry from './ThemeRegistry'; // Import the new client component
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,11 +33,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es"> {/* Cambiado a español */}
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} font-sans antialiased`}
-      >
-        {children}
-      </body>
+      <ThemeRegistry>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} font-sans antialiased`}
+        >
+          {children}
+        </body>
+      </ThemeRegistry>
     </html>
   );
 }

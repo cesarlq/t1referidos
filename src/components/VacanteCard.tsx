@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '@mui/material'; // Import MUI Button
 
 // Definición de la interfaz Vacante basada en el esquema de la BD
 export interface Vacante {
@@ -70,13 +71,16 @@ const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) =>
           </div>
         </div>
 
-        {/* Botón con estilos del theme */}
-        <button
+        {/* MUI Button using theme's primary color */}
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
           onClick={() => onReferirClick(vacante)}
-          className="w-full bg-primary hover:bg-primary_hover text-white font-bold py-2.5 px-4 rounded-lg shadow-none transition-colors duration-150 text-sm"
+          // sx={{ py: 1.2, fontSize: '0.875rem', fontWeight: 'bold' }} // Example sx prop if further fine-tuning needed beyond theme
         >
           Referir Candidato
-        </button>
+        </Button>
       </div>
     </div>
   );
