@@ -27,22 +27,45 @@ export interface Vacante {
 
 interface VacanteCardProps {
   vacante: Vacante;
+  onReferirClick: (vacanteId: string) => void;
 }
 
-const VacanteCard: React.FC<VacanteCardProps> = ({ vacante }) => {
+const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) => {
   return (
-    <div style={{ border: '1px solid #ccc', margin: '10px', padding: '10px', borderRadius: '8px' }}>
-      <h2>{vacante.titulo_puesto}</h2>
-      <p><strong>Departamento:</strong> {vacante.departamento}</p>
-      <p><strong>Modalidad:</strong> {vacante.modalidad}</p>
-      {vacante.ubicacion && <p><strong>Ubicación:</strong> {vacante.ubicacion}</p>}
-      {vacante.salario_rango_min && vacante.salario_rango_max && (
-        <p>
-          <strong>Salario:</strong> ${vacante.salario_rango_min} - ${vacante.salario_rango_max} {vacante.moneda || 'USD'}
-        </p>
-      )}
-      <p><strong>Tecnologías:</strong> {vacante.tecnologias_requeridas.join(', ')}</p>
-      <button>Referir Candidato</button>
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 ease-in-out">
+      <div className="p-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{vacante.titulo_puesto}</h2>
+        <p className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold mb-1 uppercase">{vacante.departamento}</p>
+        <div className="mb-4 space-y-2">
+          <p className="text-gray-700 dark:text-gray-300">
+            <strong>Modalidad:</strong> <span className="capitalize bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full text-xs">{vacante.modalidad}</span>
+          </p>
+          {vacante.ubicacion && (
+            <p className="text-gray-700 dark:text-gray-300"><strong>Ubicación:</strong> {vacante.ubicacion}</p>
+          )}
+          {vacante.salario_rango_min && vacante.salario_rango_max && (
+            <p className="text-gray-700 dark:text-gray-300">
+              <strong>Salario:</strong> ${vacante.salario_rango_min} - ${vacante.salario_rango_max} {vacante.moneda || 'USD'}
+            </p>
+          )}
+          <div>
+            <p className="text-gray-700 dark:text-gray-300 mb-1"><strong>Tecnologías:</strong></p>
+            <div className="flex flex-wrap gap-2">
+              {vacante.tecnologias_requeridas.map((tech, index) => (
+                <span key={index} className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-medium">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => onReferirClick(vacante.id)}
+          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
+        >
+          Referir Candidato
+        </button>
+      </div>
     </div>
   );
 };
