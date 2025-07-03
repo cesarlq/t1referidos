@@ -27,7 +27,7 @@ export interface Vacante {
 
 interface VacanteCardProps {
   vacante: Vacante;
-  onReferirClick: (vacanteId: string) => void;
+  onReferirClick: (vacante: Vacante) => void; // Cambiado de vacanteId: string a vacante: Vacante
 }
 
 const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) => {
@@ -60,7 +60,7 @@ const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) =>
           </div>
         </div>
         <button
-          onClick={() => onReferirClick(vacante.id)}
+          onClick={() => onReferirClick(vacante)} // Se pasa el objeto vacante completo
           className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
         >
           Referir Candidato

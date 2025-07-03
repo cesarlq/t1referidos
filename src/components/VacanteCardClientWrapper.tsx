@@ -1,21 +1,54 @@
 "use client";
 
-import React from 'react';
-import VacanteCard, { Vacante } from './VacanteCard'; // Ajusta la ruta si es necesario
+import React, { useState } from 'react';
+import VacanteCard, { Vacante } from './VacanteCard';
+import Modal from './Modal';
+import FormularioReferencia from './FormularioReferencia';
 
 interface VacanteCardClientWrapperProps {
   vacante: Vacante;
 }
 
 const VacanteCardClientWrapper: React.FC<VacanteCardClientWrapperProps> = ({ vacante }) => {
-  const handleReferirClick = (vacanteId: string) => {
-    // Esta función se ejecutará en el cliente.
-    // Aquí se gestionará la apertura del modal/formulario.
-    alert(`Abrir formulario para referir a la vacante ID: ${vacanteId}\n(Funcionalidad de modal/formulario pendiente)`);
-    console.log(`Referir candidato para la vacante ID: ${vacanteId}`);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedVacante, setSelectedVacante] = useState<Vacante | null>(null);
+
+  const handleReferirClick = (clickedVacante: Vacante) => {
+    setSelectedVacante(clickedVacante);
+    setIsModalOpen(true);
   };
 
-  return <VacanteCard vacante={vacante} onReferirClick={handleReferirClick} />;
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedVacante(null);
+  };
+
+  const handleFormSubmitSuccess = () => {
+    // Aquí podrías añadir lógica adicional si es necesario después de un envío exitoso
+    // por ejemplo, mostrar un mensaje de "gracias", etc.
+    console.log("Formulario enviado con éxito");
+    handleCloseModal(); // Cierra el modal después del envío
+  };
+
+  return (
+    <>
+      <VacanteCard vacante={vacante} onReferirClick={() => handleReferirClick(vacante)} />
+
+      {isModalOpen && selectedVacante && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          title={`Referir Candidato para: ${selectedVacante.titulo_puesto}`}
+        >
+          <FormularioReferencia
+            vacanteId={selectedVacante.id}
+            onSubmitSuccess={handleFormSubmitSuccess}
+            onCancel={handleCloseModal} // El botón "Cancelar" del formulario también cierra el modal
+          />
+        </Modal>
+      )}
+    </>
+  );
 };
 
 export default VacanteCardClientWrapper;
