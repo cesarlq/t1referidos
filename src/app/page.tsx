@@ -76,36 +76,44 @@ export default async function HomePage() {
       {/* Hero Section */}
       <Box
         sx={{
-          py: { xs: 6, md: 10 },
-          textAlign: 'center',
-          bgcolor: 'secondary.main', // Light pinkish background from theme
+          py: { xs: 4, md: 6 }, // Adjusted padding for the outer Box
+          // bgcolor: 'secondary.main', // Will move this to the Paper or keep for full-width background
           borderBottom: 1,
           borderColor: 'divider',
         }}
       >
-        <Container maxWidth="md">
-          <Typography
-            variant="h2"
-            component="h1"
+        <Container maxWidth="lg"> {/* Changed maxWidth to lg to match VacanteCards container */}
+          <Paper
+            elevation={3} // Add some shadow to make it look like a card
             sx={{
-              fontWeight: 'extrabold',
-              color: 'primary.main', // Prominent red
-              mb: 2,
-              fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
+              p: { xs: 3, md: 4 }, // Padding inside the card
+              textAlign: 'center',
+              bgcolor: 'secondary.main', // Apply background to the Paper
+              // maxWidth: 'md', // Control width if needed, but lg container should handle it
+              mx: 'auto', // Center the paper if it's narrower than the container
             }}
           >
-            Encuentra y Refiere Talento Excepcional
-          </Typography>
-          <Typography
-            variant="h6"
-            component="p"
-            color="text.secondary" // Softer text color
-            sx={{ mt: 2, mb: 4, maxWidth: '700px', mx: 'auto' }}
-          >
-            Explora nuestras vacantes activas y ayúdanos a construir el mejor equipo. Tu red de contactos es invaluable para T1.
-          </Typography>
-          {/* Optional: A primary CTA if needed, e.g., linking to a "how to refer" page or directly to vacancies */}
-          {/* For now, the main action is to browse vacancies below */}
+            <Typography
+              variant="h2"
+              component="h1"
+              sx={{
+                fontWeight: 'extrabold',
+                color: 'primary.main',
+                mb: 2,
+                fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
+              }}
+            >
+              Encuentra y Refiere Talento Excepcional
+            </Typography>
+            <Typography
+              variant="h6"
+              component="p"
+              color="text.secondary"
+              sx={{ mt: 2, mb: 4, maxWidth: '700px', mx: 'auto' }} // Keep inner text constrained if desired
+            >
+              Explora nuestras vacantes activas y ayúdanos a construir el mejor equipo. Tu red de contactos es invaluable para T1.
+            </Typography>
+          </Paper>
         </Container>
       </Box>
 
@@ -114,7 +122,7 @@ export default async function HomePage() {
         {vacantes.length > 0 ? (
           <Grid container spacing={3}> {/* MUI Grid with spacing from theme */}
             {vacantes.map((vacante) => (
-              <Grid item xs={12} sm={6} md={4} key={vacante.id}>
+              <Grid size={{ xs: 12, sm: 12, md: 12 }} key={vacante.id}>
                 <VacanteCardClientWrapper vacante={vacante} />
               </Grid>
             ))}
