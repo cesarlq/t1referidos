@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Vacante } from '@/components/VacanteCard';
-import { EyeIcon, PencilIcon, TrashIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, PencilIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import { revalidatePath } from 'next/cache';
 import DeleteVacanteForm from '@/components/admin/DeleteVacanteForm'; // Importar el nuevo componente
 
@@ -62,7 +62,7 @@ export default async function AdminVacantesPage() {
     <div className="bg-white shadow-lg rounded-xl p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">Gestionar Vacantes</h1>
-        <Link
+        <Link 
           href="/admin/vacantes/nueva"
           className="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white font-semibold text-sm rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150 w-full sm:w-auto"
         >
@@ -113,26 +113,17 @@ export default async function AdminVacantesPage() {
                   </td>
                   <td className="px-4 py-4 sm:px-6 whitespace-nowrap text-sm font-medium text-center">
                     <div className="flex items-center justify-center space-x-2 sm:space-x-3">
-                      <Link
+                      <Link 
                         href={`/admin/vacantes/${vacante.id}/editar`}
-                        className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                        className="text-indigo-600 hover:text-indigo-800 transition-colors" 
                         title="Editar"
                       >
                         <PencilIcon className="h-5 w-5" />
                       </Link>
-                      <form action={eliminarVacanteAction} method="POST" className="inline" onSubmit={(e) => {
-                          if (!confirm('¿Estás seguro de que quieres eliminar esta vacante? Esta acción no se puede deshacer.')) {
-                              e.preventDefault();
-                          }
-                      }}>
-                          <input type="hidden" name="id" value={vacante.id} />
-                          <button type="submit" className="text-red-600 hover:text-red-800 transition-colors" title="Eliminar">
-                             <TrashIcon className="h-5 w-5" />
-                          </button>
-                      </form>
-                      <Link
+                      <DeleteVacanteForm vacanteId={vacante.id} eliminarAction={eliminarVacanteAction} />
+                      <Link 
                         href={`/admin/vacantes/${vacante.id}/referidos`}
-                        className="text-sky-600 hover:text-sky-800 transition-colors"
+                        className="text-sky-600 hover:text-sky-800 transition-colors" 
                         title="Ver Referidos"
                       >
                         <EyeIcon className="h-5 w-5" />

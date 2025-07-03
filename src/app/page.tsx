@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabaseClient';
-import VacanteCard, { Vacante } from '@/components/VacanteCard';
+import { Vacante } from '@/components/VacanteCard';
 import React from 'react';
+import VacanteCardClientWrapper from '@/components/VacanteCardClientWrapper';
+import Link from 'next/link';
 
 // Tipos para los enums de Supabase (si los usas directamente en el frontend)
 // Sería ideal generarlos con `supabase gen types typescript > types/supabase.ts`
@@ -46,41 +48,6 @@ async function getActiveVacantes(): Promise<Vacante[]> {
   return data as Vacante[];
 }
 
-import Link from 'next/link';
-import VacanteCardClientWrapper from '@/components/VacanteCardClientWrapper';
-import { Vacante } from '@/components/VacanteCard'; // Asegúrate que la interfaz Vacante esté disponible
-import { supabase } from '@/lib/supabaseClient'; // Para getActiveVacantes
-
-// Esta función se ejecutará en el servidor para obtener los datos
-async function getActiveVacantes(): Promise<Vacante[]> {
-  const { data, error } = await supabase
-    .from('vacantes')
-    .select(`
-      id,
-      titulo_puesto,
-      departamento,
-      modalidad,
-      ubicacion,
-      salario_rango_min,
-      salario_rango_max,
-      moneda,
-      descripcion_puesto,
-      tecnologias_requeridas,
-      responsabilidades,
-      requisitos,
-      beneficios,
-      fecha_publicacion,
-      esta_activa
-    `)
-    .eq('esta_activa', true)
-    .order('fecha_publicacion', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching vacantes:', error);
-    return [];
-  }
-  return data as Vacante[];
-}
 
 
 export default async function HomePage() {
