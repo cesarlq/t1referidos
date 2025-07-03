@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import VacanteForm, { VacanteFormData } from '@/components/admin/VacanteForm';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 import { Vacante } from '@/components/VacanteCard'; // Reutilizamos interfaz
 import { revalidatePath } from 'next/cache';
+import Link from 'next/link';
 
 interface EditarVacantePageProps {
   params: { id: string };
