@@ -32,14 +32,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es"> {/* Cambiado a español */}
-<ThemeRegistry>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} font-sans antialiased`}
-        >
-          {children}
-        </body>
-      </ThemeRegistry>
+    <html lang="es"><body>
+        <ThemeRegistry>
+          <div className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} font-sans antialiased`}>
+            {children}
+          </div>
+        </ThemeRegistry>
+      </body>
     </html>
   );
 }
