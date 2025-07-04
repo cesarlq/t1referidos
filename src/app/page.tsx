@@ -4,6 +4,7 @@ import React from 'react';
 import VacanteCardClientWrapper from '@/components/VacanteCardClientWrapper';
 import Link from 'next/link';
 import { Box, Button, Container, Grid, Typography, AppBar, Toolbar, Paper } from '@mui/material'; // MUI imports
+import CurrentYear from '@/components/CurrentYear'; // Importar CurrentYear
 
 // Data fetching function remains the same
 async function getActiveVacantes(): Promise<Vacante[]> {
@@ -157,7 +158,7 @@ export default async function HomePage() {
         }}
       >
         <Typography variant="caption" color="text.secondary">
-          Plataforma de Referidos Internos T1Referidos &copy; {new Date().getFullYear()}
+          Plataforma de Referidos Internos T1Referidos &copy; <CurrentYear />
         </Typography>
       </Box>
     </Box>

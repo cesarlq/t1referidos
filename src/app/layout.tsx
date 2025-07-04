@@ -33,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es"> {/* Cambiado a español */}
-      <ThemeRegistry>
+<ThemeRegistry>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} font-sans antialiased`}
         >
