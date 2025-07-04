@@ -31,7 +31,7 @@ export default function DeleteVacanteForm({ vacanteId, eliminarAction }: DeleteV
     // El `onSubmit` se usa aquí solo para el `confirm()`.
     <form
       action={eliminarAction}
-      method="POST" // method="POST" es implícito para Server Actions pero bueno tenerlo
+      // method="POST" es implícito para Server Actions y puede ser omitido para evitar advertencias.
       className="inline"
       onSubmit={handleFormSubmit} // Este onSubmit es para la confirmación del cliente
     >

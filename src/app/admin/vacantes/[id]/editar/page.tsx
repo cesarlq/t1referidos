@@ -76,11 +76,9 @@ export default async function EditarVacantePage({ params }: EditarVacantePagePro
     );
   }
 
-  // Creamos una función wrapper para pasar el id a la server action,
-  // ya que el componente VacanteForm no conoce el ID directamente.
-  const submitActionWithId = async (formData: VacanteFormData) => {
-    return actualizarVacanteAction(vacanteId, formData);
-  };
+  // "Bindeamos" el vacanteId a la Server Action.
+  // Esto crea una nueva Server Action que solo espera VacanteFormData.
+  const boundActualizarVacanteAction = actualizarVacanteAction.bind(null, vacanteId);
 
   return (
     <div className="p-6">
@@ -92,7 +90,7 @@ export default async function EditarVacantePage({ params }: EditarVacantePagePro
       </div>
       <VacanteForm
         initialData={vacante}
-        onSubmitAction={submitActionWithId}
+        onSubmitAction={boundActualizarVacanteAction} // Pasamos la acción bindeada
         isEditMode={true}
       />
     </div>
