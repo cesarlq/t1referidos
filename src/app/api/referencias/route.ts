@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       }
 
       const uniqueFilename = `${Date.now()}_${cvFile.name.replace(/\s+/g, '_')}`;
-      const filePath = `${vacante_id}/${uniqueFilename}`;
+      const filePath = `public/${vacante_id}/${uniqueFilename}`;
 
       const { error: storageError } = await supabase.storage
         .from('cvs')
