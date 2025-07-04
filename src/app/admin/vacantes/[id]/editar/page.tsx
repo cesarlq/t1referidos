@@ -15,16 +15,29 @@ async function actualizarVacanteAction(id: string, data: VacanteFormData): Promi
   "use server";
 
   const supabase = createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return { success: false, error: 'No autenticado.' };
-  const { data: userProfile } = await supabase.from('usuarios').select('rol').eq('id', session.user.id).single();
-  if (userProfile?.rol !== 'administrador') return { success: false, error: 'No autorizado.'};
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: 'No autenticado.' };
+  }
+   const { data: userProfile } = await supabase
+    .from('usuarios')
+    .select('rol')
+    .eq('id', user.id)
+    .single();
+    
+  if (userProfile?.rol !== 'administrador') {
+    return { success: false, error: 'No autorizado.'};
+  }
+
 
   const vacanteToUpdate = {
     ...data,
     tecnologias_requeridas: data.tecnologias_requeridas.filter(t => t.trim() !== ''),
     // El campo updated_at se actualiza automáticamente por el trigger en la DB
   };
+
+  console.log('ID recibido en actualizarVacanteAction:', id);
+  console.log('Datos a actualizar:', JSON.stringify(vacanteToUpdate, null, 2)); // Usar null, 2 para pretty print
 
   const { data: updatedData, error } = await supabase
     .from('vacantes')
