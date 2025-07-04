@@ -83,7 +83,13 @@ export default async function EditarVacantePage({ params }: EditarVacantePagePro
   };
 
   return (
-    <div>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-semibold text-gray-800">Editar Vacante</h1>
+        <Link href={`/admin/vacantes/${vacanteId}/referidos`} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+          Ver Referidos
+        </Link>
+      </div>
       <VacanteForm
         initialData={vacante}
         onSubmitAction={submitActionWithId}
