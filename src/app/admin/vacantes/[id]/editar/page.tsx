@@ -35,7 +35,10 @@ async function actualizarVacanteAction(id: string, data: VacanteFormData): Promi
 
   if (error) {
     console.error("Error updating vacante:", error);
-    return { success: false, error: error.message };
+    if (error.code === 'PGRST116' && error.details?.includes('0 rows')) {
+      return { success: false, error: "Error al actualizar: La vacante no fue encontrada o ya ha sido eliminada. Por favor, verifique el listado de vacantes." };
+    }
+    return { success: false, error: `Error del servidor: ${error.message}` };
   }
 
   revalidatePath('/admin/vacantes'); // Actualizar la lista
