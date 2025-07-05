@@ -306,6 +306,7 @@ const FormularioReferencia: React.FC<FormularioReferenciaProps> = ({ vacanteId, 
                       <MenuItem value="amigo_conocido">Amigo/Conocido Personal</MenuItem>
                       <MenuItem value="contacto_profesional">Contacto Profesional (Networking)</MenuItem>
                       <MenuItem value="mentor_mentee">Mentor/Mentee</MenuItem>
+                      <MenuItem value="mentor_mentee">familiar</MenuItem>
                       <MenuItem value="otro">Otro</MenuItem>
                     </Select>
                     {touched.relacion_con_candidato && errors.relacion_con_candidato && (
