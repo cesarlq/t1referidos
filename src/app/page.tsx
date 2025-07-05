@@ -8,6 +8,7 @@ import { Box, Button, Container, Typography, AppBar, Toolbar, Paper } from '@mui
 import CurrentYear from '@/components/CurrentYear'; // Importar CurrentYear
 import  T1ReferidosIcon  from '@/assets/svg-icons/T1Referidos.svg';
 import style from '@/styles/layout/layout.module.scss';
+import PremiosEspecialesModal from '@/components/PremiosEspecialesModal';
 
 // Data fetching function remains the same
 async function getActiveVacantes(): Promise<Vacante[]> {
@@ -39,6 +40,8 @@ async function getActiveVacantes(): Promise<Vacante[]> {
   }
   return data as Vacante[];
 }
+
+
 
 export default async function HomePage() {
   const vacantes = await getActiveVacantes();
@@ -111,21 +114,20 @@ export default async function HomePage() {
                     <div className={style.benefit}>
                         <div className={style.benefitIcon}>💰</div>
                         <h3>Bonos en Efectivo</h3>
-                        <p>Hasta $2,000 MXN por referido contratado</p>
+                        <p>Hasta 2 meses de tu salario por referido contratado</p>
                     </div>
-                    <div className={style.benefit}>
-                        <div className={style.benefitIcon}>🎁</div>
-                        <h3>Premios Especiales</h3>
-                        <p>Gadgets, experiencias y premios únicos</p>
-                    </div>
-                    <div className={style.benefit}>
-                        <div className={style.benefitIcon}>📈</div>
-                        <h3>Reconocimiento</h3>
-                        <p>Programa de embajadores y reconocimientos públicos</p>
-                    </div>
+                    <PremiosEspecialesModal>
+                        <div className={style.benefit}>
+                            <div className={style.benefitIcon}>🎁</div>
+                            <h3>Premios Especiales</h3>
+                            <p>Consulta las bases del programa</p>
+                        </div>
+                    </PremiosEspecialesModal>
                 </div>
             </div>
           </Box>
+
+         
         </Container>
       </Box>
 
@@ -170,6 +172,7 @@ export default async function HomePage() {
           Plataforma de Referidos Internos T1Referidos &copy; <CurrentYear />
         </Typography>
       </Box>
+
     </Box>
   );
 }
