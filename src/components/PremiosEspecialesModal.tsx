@@ -81,10 +81,10 @@ export default function PremiosEspecialesModal({ children }: PremiosEspecialesMo
               <Stack direction="row" alignItems="center" spacing={2}>
                 <EmojiEventsOutlined sx={{ fontSize: 32 }} />
                 <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color:'white' }}>
                     Recomienda talento Rockstar y gana!
                   </Typography>
-                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  <Typography variant="body2" sx={{ opacity: 0.9, color:'white' }}>
                     🎯 Programa de Recomendados Internos T1
                   </Typography>
                 </Box>
