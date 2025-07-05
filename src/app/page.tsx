@@ -1,10 +1,13 @@
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient';
 import { Vacante } from '@/components/VacanteCard';
 import React from 'react';
 import VacanteCardClientWrapper from '@/components/VacanteCardClientWrapper';
 import Link from 'next/link';
-import { Box, Button, Container, Grid, Typography, AppBar, Toolbar, Paper } from '@mui/material'; // MUI imports
+import { Box, Button, Container, Typography, AppBar, Toolbar, Paper } from '@mui/material'; // MUI imports
 import CurrentYear from '@/components/CurrentYear'; // Importar CurrentYear
+import  T1ReferidosIcon  from '@/assets/svg-icons/T1Referidos.svg';
+import style from '@/styles/layout/layout.module.scss';
 
 // Data fetching function remains the same
 async function getActiveVacantes(): Promise<Vacante[]> {
@@ -43,7 +46,7 @@ export default async function HomePage() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' /* Using theme background */ }}>
       {/* Navigation Bar */}
-      <AppBar position="sticky" sx={{ bgcolor: 'common.white', boxShadow: 1 }}>
+      <AppBar position='sticky' sx={{ bgcolor: 'common.white', boxShadow: 1, borderRadius:'0rem' }}>
         <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
             <Typography
@@ -60,7 +63,13 @@ export default async function HomePage() {
                 },
               }}
             >
-              T1Referidos
+              <Image 
+                src={T1ReferidosIcon}
+                height={20}
+                width={100}
+                className='w-[10rem]'
+                alt='T1ReferidosIcon'
+              />
             </Typography>
             <Button
               variant="contained"
@@ -76,58 +85,58 @@ export default async function HomePage() {
 
       {/* Hero Section */}
       <Box
+        paddingTop={'2rem!important'}
+        paddingBottom={'2rem!important'}
         sx={{
-          py: { xs: 4, md: 6 }, // Adjusted padding for the outer Box
-          // bgcolor: 'secondary.main', // Will move this to the Paper or keep for full-width background
+          py: { xs: 6, md: 8 },
+          bgcolor: 'grey.50',
           borderBottom: 1,
           borderColor: 'divider',
         }}
       >
-        <Container maxWidth="lg"> {/* Changed maxWidth to lg to match VacanteCards container */}
-          <Paper
-            elevation={3} // Add some shadow to make it look like a card
-            sx={{
-              p: { xs: 3, md: 4 }, // Padding inside the card
-              textAlign: 'center',
-              bgcolor: 'secondary.main', // Apply background to the Paper
-              // maxWidth: 'md', // Control width if needed, but lg container should handle it
-              mx: 'auto', // Center the paper if it's narrower than the container
-            }}
-          >
-            <Typography
-              variant="h2"
-              component="h1"
-              sx={{
-                fontWeight: 'extrabold',
-                color: 'primary.main',
-                mb: 2,
-                fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
-              }}
-            >
-              Encuentra y Refiere Talento Excepcional
-            </Typography>
-            <Typography
-              variant="h6"
-              component="p"
-              color="text.secondary"
-              sx={{ mt: 2, mb: 4, maxWidth: '700px', mx: 'auto' }} // Keep inner text constrained if desired
-            >
-              Explora nuestras vacantes activas y ayúdanos a construir el mejor equipo. Tu red de contactos es invaluable para T1.
-            </Typography>
-          </Paper>
+        <Container maxWidth="lg" sx={{display: 'grid', gap:'2rem'}}  >
+          <Box sx={{ textAlign: 'center', width: '100%' , mx: 'auto' }}>
+            <div className={style.header}>
+                <h1>🚀 Programa de Referidos</h1>
+                <p>Ayúdanos a encontrar el mejor talento y obtén increíbles recompensas</p>
+            </div>
+          </Box>
+
+          <Box sx={{ textAlign: 'center', width: '100%' , mx: 'auto' }}>
+            <div className={style.referralInfo}>
+                <h2>¿Cómo funciona nuestro programa?</h2>
+                <p>Recomienda a profesionales talentosos de tu red y obtén beneficios exclusivos cuando sean contratados.</p>
+                
+                <div className={style.benefits}>
+                    <div className={style.benefit}>
+                        <div className={style.benefitIcon}>💰</div>
+                        <h3>Bonos en Efectivo</h3>
+                        <p>Hasta $2,000 MXN por referido contratado</p>
+                    </div>
+                    <div className={style.benefit}>
+                        <div className={style.benefitIcon}>🎁</div>
+                        <h3>Premios Especiales</h3>
+                        <p>Gadgets, experiencias y premios únicos</p>
+                    </div>
+                    <div className={style.benefit}>
+                        <div className={style.benefitIcon}>📈</div>
+                        <h3>Reconocimiento</h3>
+                        <p>Programa de embajadores y reconocimientos públicos</p>
+                    </div>
+                </div>
+            </div>
+          </Box>
         </Container>
       </Box>
 
       {/* Main Content: Listado de Vacantes */}
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
         {vacantes.length > 0 ? (
-          <Grid container spacing={3}> {/* MUI Grid with spacing from theme */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {vacantes.map((vacante) => (
-              <Grid size={{ xs: 12, sm: 12, md: 12 }} key={vacante.id}>
-                <VacanteCardClientWrapper vacante={vacante} />
-              </Grid>
+              <VacanteCardClientWrapper key={vacante.id} vacante={vacante} />
             ))}
-          </Grid>
+          </Box>
         ) : (
           <Paper elevation={0} sx={{ textAlign: 'center', py: 8, bgcolor: 'transparent' }}>
             <Box sx={{ color: 'text.disabled', mb: 2 }}> {/* Using theme color for icon */}

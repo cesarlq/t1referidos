@@ -1,29 +1,52 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Formik, Form, Field, ErrorMessage, FieldArray } from 'formik';
+import { Formik, Form, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import { useRouter } from 'next/navigation';
-import { Vacante } from '@/components/VacanteCard'; // Reutilizamos la interfaz base
+import {
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Stack,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  FormControlLabel,
+  Checkbox,
+  IconButton,
+  Alert,
+  Divider,
+  CircularProgress
+} from '@mui/material';
+import { 
+  AddOutlined, 
+  RemoveOutlined, 
+  ArrowBackOutlined,
+  SaveOutlined 
+} from '@mui/icons-material';
+import { Vacante } from '@/components/VacanteCard';
+import { useFormWithSnackbar } from '@/hooks/useApiWithSnackbar';
 
 // Interfaz para los datos del formulario de vacante
 export interface VacanteFormData extends Omit<Partial<Vacante>, 'id' | 'tecnologias_requeridas' | 'modalidad' | 'moneda' | 'salario_rango_min' | 'salario_rango_max' | 'esta_activa'> {
-  // Campos que son obligatorios en el formulario o tienen un tipo específico
   titulo_puesto: string;
   departamento: string;
   modalidad: 'remoto' | 'presencial' | 'hibrido';
   descripcion_puesto: string;
-  tecnologias_requeridas: string[]; // Se manejará como array de strings
-
-  // Campos opcionales con tipos específicos
+  tecnologias_requeridas: string[];
   ubicacion?: string;
-  salario_rango_min?: number | ''; // Permitir string vacío para el input number
-  salario_rango_max?: number | ''; // Permitir string vacío para el input number
+  salario_rango_min?: number | '';
+  salario_rango_max?: number | '';
   moneda?: 'USD' | 'MXN' | 'EUR' | '';
   responsabilidades?: string;
   requisitos?: string;
   beneficios?: string;
-  fecha_cierre?: string; // Formato YYYY-MM-DD
+  fecha_cierre?: string;
   esta_activa: boolean;
 }
 
@@ -45,7 +68,7 @@ const validationSchema = Yup.object().shape({
       }
       return true;
     }),
-  moneda: Yup.string().oneOf(['USD', 'MXN', 'EUR', '', null] as const, 'Moneda inválida').nullable(),
+  moneda: Yup.string().oneOf(['USD', 'MXN', 'EUR', ''], 'Moneda inválida').nullable(),
   responsabilidades: Yup.string(),
   requisitos: Yup.string(),
   beneficios: Yup.string(),
@@ -53,16 +76,16 @@ const validationSchema = Yup.object().shape({
   esta_activa: Yup.boolean().required(),
 });
 
-
 interface VacanteFormProps {
-  initialData?: Partial<Vacante>; // Para editar
-  onSubmitAction: (data: VacanteFormData) => Promise<{ success: boolean; error?: string; data?: any }>;
+  initialData?: Partial<Vacante>;
+  onSubmitAction: (data: VacanteFormData) => Promise<{ success: boolean; error?: string; data?: unknown }>;
   isEditMode: boolean;
 }
 
 const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, isEditMode }) => {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const { isLoading, submitForm } = useFormWithSnackbar();
 
   const formInitialValues: VacanteFormData = {
     titulo_puesto: initialData?.titulo_puesto || '',
@@ -81,9 +104,8 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
     esta_activa: initialData?.esta_activa ?? true,
   };
 
-  const handleSubmit = async (values: VacanteFormData, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
+  const handleSubmit = async (values: VacanteFormData) => {
     setServerError(null);
-    setSubmitting(true);
 
     // Limpiar valores numéricos vacíos a null para la BD
     const payload = {
@@ -94,165 +116,392 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
       fecha_cierre: values.fecha_cierre === '' ? null : values.fecha_cierre,
     };
 
-    const result = await onSubmitAction(payload);
+    const result = await submitForm(async () => {
+      const response = await onSubmitAction(payload as VacanteFormData);
+      if (!response.success) {
+        throw new Error(response.error || 'Error al guardar la vacante');
+      }
+      return response;
+    }, isEditMode ? 'vacante actualizada' : 'vacante creada');
 
-    if (result.success) {
-      router.push('/admin/vacantes'); // Redirigir a la lista
-      router.refresh(); // Forzar actualización de la lista
+    if (result) {
+      router.push('/admin/vacantes');
+      router.refresh();
     } else {
-      setServerError(result.error || 'Ocurrió un error al guardar la vacante.');
+      setServerError('Error al guardar la vacante. Por favor, inténtalo de nuevo.');
     }
-    setSubmitting(false);
   };
 
-  const commonInputClass = "mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm";
-  const errorTextClass = "text-red-600 text-sm mt-1";
-
   return (
-    <Formik
-      initialValues={formInitialValues}
-      validationSchema={validationSchema}
-      onSubmit={handleSubmit}
-      enableReinitialize // Para que el formulario se actualice si initialData cambia
-    >
-      {({ isSubmitting, values, errors, touched, setFieldValue }) => (
-        <Form className="space-y-6 p-4 md:p-6 bg-white shadow-md rounded-lg">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-            {isEditMode ? 'Editar Vacante' : 'Agregar Nueva Vacante'}
-          </h2>
-
-          {/* Campos del formulario */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="titulo_puesto" className="block text-sm font-medium text-gray-700">Título del Puesto <span className="text-red-500">*</span></label>
-              <Field name="titulo_puesto" type="text" className={`${commonInputClass} ${errors.titulo_puesto && touched.titulo_puesto ? 'border-red-500' : ''}`} />
-              <ErrorMessage name="titulo_puesto" component="div" className={errorTextClass} />
-            </div>
-            <div>
-              <label htmlFor="departamento" className="block text-sm font-medium text-gray-700">Departamento <span className="text-red-500">*</span></label>
-              <Field name="departamento" type="text" className={`${commonInputClass} ${errors.departamento && touched.departamento ? 'border-red-500' : ''}`} />
-              <ErrorMessage name="departamento" component="div" className={errorTextClass} />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="modalidad" className="block text-sm font-medium text-gray-700">Modalidad <span className="text-red-500">*</span></label>
-            <Field name="modalidad" as="select" className={`${commonInputClass} ${errors.modalidad && touched.modalidad ? 'border-red-500' : ''}`}>
-              <option value="remoto">Remoto</option>
-              <option value="presencial">Presencial</option>
-              <option value="hibrido">Híbrido</option>
-            </Field>
-            <ErrorMessage name="modalidad" component="div" className={errorTextClass} />
-          </div>
-
-          <div>
-            <label htmlFor="descripcion_puesto" className="block text-sm font-medium text-gray-700">Descripción del Puesto <span className="text-red-500">*</span></label>
-            <Field name="descripcion_puesto" as="textarea" rows="5" className={`${commonInputClass} ${errors.descripcion_puesto && touched.descripcion_puesto ? 'border-red-500' : ''}`} />
-            <ErrorMessage name="descripcion_puesto" component="div" className={errorTextClass} />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tecnologías Requeridas <span className="text-red-500">*</span></label>
-            <FieldArray name="tecnologias_requeridas">
-              {({ push, remove, form }) => (
-                <div>
-                  {form.values.tecnologias_requeridas.map((tech: string, index: number) => (
-                    <div key={index} className="flex items-center space-x-2 mt-2">
-                      <Field name={`tecnologias_requeridas.${index}`} type="text" className={`${commonInputClass} flex-grow`} />
-                      <button type="button" onClick={() => remove(index)} className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                  <ErrorMessage name="tecnologias_requeridas" component="div" className={errorTextClass} />
-                   { typeof errors.tecnologias_requeridas === 'string' && <div className={errorTextClass}>{errors.tecnologias_requeridas}</div> }
-                  <button type="button" onClick={() => push('')} className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                    + Agregar Tecnología
-                  </button>
-                </div>
-              )}
-            </FieldArray>
-          </div>
-
-          {/* Campos Opcionales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="ubicacion" className="block text-sm font-medium text-gray-700">Ubicación (si no es remoto)</label>
-              <Field name="ubicacion" type="text" className={commonInputClass} />
-            </div>
-            <div>
-              <label htmlFor="moneda" className="block text-sm font-medium text-gray-700">Moneda Salario</label>
-              <Field name="moneda" as="select" className={commonInputClass}>
-                <option value="USD">USD</option>
-                <option value="MXN">MXN</option>
-                <option value="EUR">EUR</option>
-                <option value="">No especificar</option>
-              </Field>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="salario_rango_min" className="block text-sm font-medium text-gray-700">Salario Mínimo (Opcional)</label>
-              <Field name="salario_rango_min" type="number" step="any" className={`${commonInputClass} ${errors.salario_rango_min && touched.salario_rango_min ? 'border-red-500' : ''}`} />
-              <ErrorMessage name="salario_rango_min" component="div" className={errorTextClass} />
-            </div>
-            <div>
-              <label htmlFor="salario_rango_max" className="block text-sm font-medium text-gray-700">Salario Máximo (Opcional)</label>
-              <Field name="salario_rango_max" type="number" step="any" className={`${commonInputClass} ${errors.salario_rango_max && touched.salario_rango_max ? 'border-red-500' : ''}`} />
-              <ErrorMessage name="salario_rango_max" component="div" className={errorTextClass} />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="responsabilidades" className="block text-sm font-medium text-gray-700">Responsabilidades (Opcional)</label>
-            <Field name="responsabilidades" as="textarea" rows="3" className={commonInputClass} />
-          </div>
-          <div>
-            <label htmlFor="requisitos" className="block text-sm font-medium text-gray-700">Requisitos (Opcional)</label>
-            <Field name="requisitos" as="textarea" rows="3" className={commonInputClass} />
-          </div>
-          <div>
-            <label htmlFor="beneficios" className="block text-sm font-medium text-gray-700">Beneficios (Opcional)</label>
-            <Field name="beneficios" as="textarea" rows="3" className={commonInputClass} />
-          </div>
-
-          <div>
-            <label htmlFor="fecha_cierre" className="block text-sm font-medium text-gray-700">Fecha de Cierre (Opcional)</label>
-            <Field name="fecha_cierre" type="date" className={`${commonInputClass} ${errors.fecha_cierre && touched.fecha_cierre ? 'border-red-500' : ''}`} />
-            <ErrorMessage name="fecha_cierre" component="div" className={errorTextClass} />
-          </div>
-
-          <div className="flex items-center">
-            <Field type="checkbox" name="esta_activa" id="esta_activa" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
-            <label htmlFor="esta_activa" className="ml-2 block text-sm text-gray-900">
-              Vacante Activa (visible en el portal público)
-            </label>
-          </div>
-
-          {serverError && <div className="text-red-600 text-sm p-3 bg-red-100 border border-red-300 rounded-md">{serverError}</div>}
-
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          border: 1, 
+          borderColor: 'divider',
+          borderRadius: 3,
+          overflow: 'hidden'
+        }}
+      >
+        {/* Header */}
+        <Box sx={{ p: 4, borderBottom: 1, borderColor: 'divider' }}>
+          <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+            <IconButton 
               onClick={() => router.back()}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              disabled={isSubmitting}
+              sx={{ 
+                bgcolor: 'grey.100',
+                '&:hover': { bgcolor: 'grey.200' }
+              }}
             >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-              disabled={isSubmitting}
+              <ArrowBackOutlined />
+            </IconButton>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{
+                fontWeight: 700,
+                color: 'text.primary'
+              }}
             >
-              {isSubmitting ? 'Guardando...' : (isEditMode ? 'Actualizar Vacante' : 'Crear Vacante')}
-            </button>
-          </div>
-        </Form>
-      )}
-    </Formik>
+              {isEditMode ? 'Editar Vacante' : 'Nueva Vacante'}
+            </Typography>
+          </Stack>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{ maxWidth: 600 }}
+          >
+            {isEditMode 
+              ? 'Actualiza la información de la vacante existente'
+              : 'Completa la información para crear una nueva vacante'
+            }
+          </Typography>
+        </Box>
+
+        {/* Form */}
+        <Box sx={{ p: 4 }}>
+          <Formik
+            initialValues={formInitialValues}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+            enableReinitialize
+          >
+            {({ values, errors, touched, setFieldValue }) => (
+              <Form>
+                <Stack spacing={4}>
+                  {/* Información Básica */}
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: 3, 
+                      border: 1, 
+                      borderColor: 'divider',
+                      borderRadius: 2 
+                    }}
+                  >
+                    <Typography 
+                      variant="h6" 
+                      component="h3" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: 'text.primary', 
+                        mb: 3 
+                      }}
+                    >
+                      Información Básica
+                    </Typography>
+                    <Stack spacing={3}>
+                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                        <TextField
+                          fullWidth
+                          name="titulo_puesto"
+                          label="Título del Puesto"
+                          required
+                          value={values.titulo_puesto}
+                          onChange={(e) => setFieldValue('titulo_puesto', e.target.value)}
+                          error={touched.titulo_puesto && !!errors.titulo_puesto}
+                          helperText={touched.titulo_puesto && errors.titulo_puesto}
+                          disabled={isLoading}
+                        />
+                        <TextField
+                          fullWidth
+                          name="departamento"
+                          label="Departamento"
+                          required
+                          value={values.departamento}
+                          onChange={(e) => setFieldValue('departamento', e.target.value)}
+                          error={touched.departamento && !!errors.departamento}
+                          helperText={touched.departamento && errors.departamento}
+                          disabled={isLoading}
+                        />
+                      </Stack>
+
+                      <FormControl fullWidth disabled={isLoading}>
+                        <InputLabel required>Modalidad</InputLabel>
+                        <Select
+                          name="modalidad"
+                          value={values.modalidad}
+                          onChange={(e) => setFieldValue('modalidad', e.target.value)}
+                          label="Modalidad"
+                        >
+                          <MenuItem value="remoto">Remoto</MenuItem>
+                          <MenuItem value="presencial">Presencial</MenuItem>
+                          <MenuItem value="hibrido">Híbrido</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      <TextField
+                        fullWidth
+                        name="descripcion_puesto"
+                        label="Descripción del Puesto"
+                        required
+                        multiline
+                        rows={4}
+                        value={values.descripcion_puesto}
+                        onChange={(e) => setFieldValue('descripcion_puesto', e.target.value)}
+                        error={touched.descripcion_puesto && !!errors.descripcion_puesto}
+                        helperText={touched.descripcion_puesto && errors.descripcion_puesto}
+                        disabled={isLoading}
+                      />
+                    </Stack>
+                  </Paper>
+
+                  {/* Tecnologías */}
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: 3, 
+                      border: 1, 
+                      borderColor: 'divider',
+                      borderRadius: 2 
+                    }}
+                  >
+                    <Typography 
+                      variant="h6" 
+                      component="h3" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: 'text.primary', 
+                        mb: 3 
+                      }}
+                    >
+                      Tecnologías Requeridas
+                    </Typography>
+                    <FieldArray name="tecnologias_requeridas">
+                      {({ push, remove }) => (
+                        <Stack spacing={2}>
+                          {values.tecnologias_requeridas.map((tech: string, index: number) => (
+                            <Stack key={index} direction="row" spacing={1} alignItems="center">
+                              <TextField
+                                fullWidth
+                                name={`tecnologias_requeridas.${index}`}
+                                label={`Tecnología ${index + 1}`}
+                                value={tech}
+                                onChange={(e) => setFieldValue(`tecnologias_requeridas.${index}`, e.target.value)}
+                                disabled={isLoading}
+                              />
+                              <IconButton
+                                onClick={() => remove(index)}
+                                disabled={values.tecnologias_requeridas.length <= 1 || isLoading}
+                                color="error"
+                                sx={{ minWidth: 40 }}
+                              >
+                                <RemoveOutlined />
+                              </IconButton>
+                            </Stack>
+                          ))}
+                          <Button
+                            startIcon={<AddOutlined />}
+                            onClick={() => push('')}
+                            variant="outlined"
+                            disabled={isLoading}
+                            sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
+                          >
+                            Agregar Tecnología
+                          </Button>
+                          {typeof errors.tecnologias_requeridas === 'string' && (
+                            <Typography color="error" variant="body2">
+                              {errors.tecnologias_requeridas}
+                            </Typography>
+                          )}
+                        </Stack>
+                      )}
+                    </FieldArray>
+                  </Paper>
+
+                  {/* Información Adicional */}
+                  <Paper 
+                    elevation={0} 
+                    sx={{ 
+                      p: 3, 
+                      border: 1, 
+                      borderColor: 'divider',
+                      borderRadius: 2 
+                    }}
+                  >
+                    <Typography 
+                      variant="h6" 
+                      component="h3" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: 'text.primary', 
+                        mb: 3 
+                      }}
+                    >
+                      Información Adicional
+                    </Typography>
+                    <Stack spacing={3}>
+                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                        <TextField
+                          fullWidth
+                          name="ubicacion"
+                          label="Ubicación (si no es remoto)"
+                          value={values.ubicacion}
+                          onChange={(e) => setFieldValue('ubicacion', e.target.value)}
+                          disabled={isLoading}
+                        />
+                        <FormControl fullWidth disabled={isLoading}>
+                          <InputLabel>Moneda</InputLabel>
+                          <Select
+                            name="moneda"
+                            value={values.moneda}
+                            onChange={(e) => setFieldValue('moneda', e.target.value)}
+                            label="Moneda"
+                          >
+                            <MenuItem value="USD">USD</MenuItem>
+                            <MenuItem value="MXN">MXN</MenuItem>
+                            <MenuItem value="EUR">EUR</MenuItem>
+                            <MenuItem value="">No especificar</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Stack>
+
+                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                        <TextField
+                          fullWidth
+                          name="salario_rango_min"
+                          label="Salario Mínimo"
+                          type="number"
+                          value={values.salario_rango_min}
+                          onChange={(e) => setFieldValue('salario_rango_min', e.target.value)}
+                          error={touched.salario_rango_min && !!errors.salario_rango_min}
+                          helperText={touched.salario_rango_min && errors.salario_rango_min}
+                          disabled={isLoading}
+                        />
+                        <TextField
+                          fullWidth
+                          name="salario_rango_max"
+                          label="Salario Máximo"
+                          type="number"
+                          value={values.salario_rango_max}
+                          onChange={(e) => setFieldValue('salario_rango_max', e.target.value)}
+                          error={touched.salario_rango_max && !!errors.salario_rango_max}
+                          helperText={touched.salario_rango_max && errors.salario_rango_max}
+                          disabled={isLoading}
+                        />
+                      </Stack>
+
+                      <TextField
+                        fullWidth
+                        name="responsabilidades"
+                        label="Responsabilidades"
+                        multiline
+                        rows={3}
+                        value={values.responsabilidades}
+                        onChange={(e) => setFieldValue('responsabilidades', e.target.value)}
+                        disabled={isLoading}
+                      />
+
+                      <TextField
+                        fullWidth
+                        name="requisitos"
+                        label="Requisitos"
+                        multiline
+                        rows={3}
+                        value={values.requisitos}
+                        onChange={(e) => setFieldValue('requisitos', e.target.value)}
+                        disabled={isLoading}
+                      />
+
+                      <TextField
+                        fullWidth
+                        name="beneficios"
+                        label="Beneficios"
+                        multiline
+                        rows={3}
+                        value={values.beneficios}
+                        onChange={(e) => setFieldValue('beneficios', e.target.value)}
+                        disabled={isLoading}
+                      />
+
+                      <TextField
+                        fullWidth
+                        name="fecha_cierre"
+                        label="Fecha de Cierre"
+                        type="date"
+                        InputLabelProps={{ shrink: true }}
+                        value={values.fecha_cierre}
+                        onChange={(e) => setFieldValue('fecha_cierre', e.target.value)}
+                        error={touched.fecha_cierre && !!errors.fecha_cierre}
+                        helperText={touched.fecha_cierre && errors.fecha_cierre}
+                        disabled={isLoading}
+                      />
+
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="esta_activa"
+                            checked={values.esta_activa}
+                            onChange={(e) => setFieldValue('esta_activa', e.target.checked)}
+                            disabled={isLoading}
+                          />
+                        }
+                        label="Vacante Activa (visible en el portal público)"
+                      />
+                    </Stack>
+                  </Paper>
+
+                  {serverError && (
+                    <Alert severity="error" sx={{ borderRadius: 2 }}>
+                      {serverError}
+                    </Alert>
+                  )}
+
+                  <Divider />
+
+                  {/* Botones de acción */}
+                  <Stack direction="row" justifyContent="flex-end" spacing={2}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => router.back()}
+                      disabled={isLoading}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={isLoading}
+                      startIcon={isLoading ? <CircularProgress size={16} /> : <SaveOutlined />}
+                      sx={{ 
+                        textTransform: 'none',
+                        minWidth: 140
+                      }}
+                    >
+                      {isLoading 
+                        ? 'Guardando...' 
+                        : (isEditMode ? 'Actualizar Vacante' : 'Crear Vacante')
+                      }
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Form>
+            )}
+          </Formik>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 

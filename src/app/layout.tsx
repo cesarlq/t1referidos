@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Manrope as FontManrope } from "next/font/google"; // Importar Manrope
 import "./globals.css";
 import ThemeRegistry from './ThemeRegistry'; // Import the new client component
+import { SnackbarProvider } from '@/contexts/SnackbarContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,9 +35,11 @@ export default function RootLayout({
   return (
     <html lang="es"><body>
         <ThemeRegistry>
-          <div className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} font-sans antialiased`}>
-            {children}
-          </div>
+          <SnackbarProvider>
+            <div className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} font-sans antialiased`}>
+              {children}
+            </div>
+          </SnackbarProvider>
         </ThemeRegistry>
       </body>
     </html>

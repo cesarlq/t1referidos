@@ -15,16 +15,29 @@ async function actualizarVacanteAction(id: string, data: VacanteFormData): Promi
   "use server";
 
   const supabase = createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return { success: false, error: 'No autenticado.' };
-  const { data: userProfile } = await supabase.from('usuarios').select('rol').eq('id', session.user.id).single();
-  if (userProfile?.rol !== 'administrador') return { success: false, error: 'No autorizado.'};
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: 'No autenticado.' };
+  }
+   const { data: userProfile } = await supabase
+    .from('usuarios')
+    .select('rol')
+    .eq('id', user.id)
+    .single();
+    
+  if (userProfile?.rol !== 'administrador') {
+    return { success: false, error: 'No autorizado.'};
+  }
+
 
   const vacanteToUpdate = {
     ...data,
     tecnologias_requeridas: data.tecnologias_requeridas.filter(t => t.trim() !== ''),
     // El campo updated_at se actualiza automáticamente por el trigger en la DB
   };
+
+  console.log('ID recibido en actualizarVacanteAction:', id);
+  console.log('Datos a actualizar:', JSON.stringify(vacanteToUpdate, null, 2)); // Usar null, 2 para pretty print
 
   const { data: updatedData, error } = await supabase
     .from('vacantes')
@@ -35,7 +48,10 @@ async function actualizarVacanteAction(id: string, data: VacanteFormData): Promi
 
   if (error) {
     console.error("Error updating vacante:", error);
-    return { success: false, error: error.message };
+    if (error.code === 'PGRST116' && error.details?.includes('0 rows')) {
+      return { success: false, error: "Error al actualizar: La vacante no fue encontrada o ya ha sido eliminada. Por favor, verifique el listado de vacantes." };
+    }
+    return { success: false, error: `Error del servidor: ${error.message}` };
   }
 
   revalidatePath('/admin/vacantes'); // Actualizar la lista
@@ -76,11 +92,9 @@ export default async function EditarVacantePage({ params }: EditarVacantePagePro
     );
   }
 
-  // Creamos una función wrapper para pasar el id a la server action,
-  // ya que el componente VacanteForm no conoce el ID directamente.
-  const submitActionWithId = async (formData: VacanteFormData) => {
-    return actualizarVacanteAction(vacanteId, formData);
-  };
+  // "Bindeamos" el vacanteId a la Server Action.
+  // Esto crea una nueva Server Action que solo espera VacanteFormData.
+  const boundActualizarVacanteAction = actualizarVacanteAction.bind(null, vacanteId);
 
   return (
     <div className="p-6">
@@ -92,7 +106,7 @@ export default async function EditarVacantePage({ params }: EditarVacantePagePro
       </div>
       <VacanteForm
         initialData={vacante}
-        onSubmitAction={submitActionWithId}
+        onSubmitAction={boundActualizarVacanteAction} // Pasamos la acción bindeada
         isEditMode={true}
       />
     </div>
