@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   // pero la `response` que devuelve tendrá las cookies correctas para enviar al cliente.
   // Para leer el estado *después* de updateSession, usaremos un nuevo cliente Supabase
   // con las cookies de la `request` (que `updateSession` debería haber actualizado si es necesario).
-  let response = await updateSession(request);
+  const response = await updateSession(request);
 
   // Para crear un nuevo cliente Supabase que pueda leer el estado de sesión actualizado,
   // necesitamos asegurarnos de que las cookies en la `request` que le pasamos

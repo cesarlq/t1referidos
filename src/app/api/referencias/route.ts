@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server'; // Usamos el cliente de Supabase para server actions/route handlers
+import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 
 // Interfaz para los datos que esperamos en la tabla de referencias
@@ -39,6 +40,12 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function POST(request: NextRequest) {
   const supabase = createSupabaseServerClient();
+  
+  // Cliente anónimo para uploads de Storage
+  const supabaseAnon = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   try {
     const formData = await request.formData();
 
@@ -76,7 +83,7 @@ export async function POST(request: NextRequest) {
       const uniqueFilename = `${Date.now()}_${cvFile.name.replace(/\s+/g, '_')}`;
       const filePath = `public/${vacante_id}/${uniqueFilename}`;
 
-      const { error: storageError } = await supabase.storage
+      const { error: storageError } = await supabaseAnon.storage
         .from('cvs')
         .upload(filePath, cvFile, { cacheControl: '3600', upsert: false });
 
@@ -85,7 +92,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: `Error al subir CV: ${storageError.message}` }, { status: 500 });
       }
 
-      const { data: publicUrlData } = supabase.storage.from('cvs').getPublicUrl(filePath);
+      const { data: publicUrlData } = supabaseAnon.storage.from('cvs').getPublicUrl(filePath);
       cv_url = publicUrlData?.publicUrl || null;
       cv_filename = cvFile.name;
       cv_size_bytes = cvFile.size;

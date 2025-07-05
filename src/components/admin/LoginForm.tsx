@@ -2,7 +2,20 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client'; // Cliente para el navegador
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import {
+  Box,
+  Card,
+  CardContent,
+  TextField,
+  Button,
+  Typography,
+  Alert,
+  Container,
+  CircularProgress
+} from '@mui/material';
+import { LoginOutlined } from '@mui/icons-material';
+import { useAuthWithSnackbar } from '@/hooks/useApiWithSnackbar';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -10,108 +23,174 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, login } = useAuthWithSnackbar();
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    setIsLoading(true);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const result = await login(async () => {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        // Mapear errores comunes a mensajes más amigables
+        let errorMessage = 'Correo electrónico o contraseña incorrectos.';
+        if (signInError.message.includes('Invalid login credentials')) {
+          errorMessage = 'Correo electrónico o contraseña incorrectos.';
+        } else {
+          errorMessage = signInError.message;
+        }
+        throw new Error(errorMessage);
+      }
+
+      return { success: true };
     });
 
-    if (signInError) {
-      console.error('Error signing in:', signInError);
-      // Mapear errores comunes a mensajes más amigables
-      if (signInError.message.includes('Invalid login credentials')) {
-        setError('Correo electrónico o contraseña incorrectos.');
-      } else {
-        setError(signInError.message);
-      }
-      setIsLoading(false);
-      return;
+    if (result) {
+      router.refresh();
+      router.push('/admin/dashboard');
+    } else {
+      setError('Error al iniciar sesión. Por favor, verifica tus credenciales.');
     }
-
-    // Si el login es exitoso, Supabase maneja la sesión.
-    // El middleware debería refrescarla y las cookies se establecerán.
-    // Ahora necesitamos verificar el rol. Esto se hará en un layout o página protegida.
-    // Por ahora, redirigimos a un dashboard de admin仮.
-    // Podríamos hacer una llamada para obtener el perfil del usuario y verificar el rol aquí mismo
-    // o dejar que la página de destino lo haga.
-
-    // router.refresh() es importante para que Next.js reconozca el cambio de sesión
-    // en los Server Components de la siguiente página.
-    router.refresh();
-    router.push('/admin/dashboard'); // O la página principal del panel de admin
-    // No necesitamos setIsLoading(false) aquí porque la página va a cambiar.
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-xl">
-        <h2 className="text-3xl font-bold text-center text-gray-800">Admin Login</h2>
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Correo Electrónico
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'grey.50',
+        py: 3
+      }}
+    >
+      <Container maxWidth="sm">
+        <Card
+          elevation={0}
+          sx={{
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: 3,
+            overflow: 'hidden'
+          }}
+        >
+          <CardContent sx={{ p: 4 }}>
+            {/* Header */}
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 64,
+                  height: 64,
+                  borderRadius: 2,
+                  bgcolor: 'primary.main',
+                  color: 'white',
+                  mb: 2
+                }}
+              >
+                <LoginOutlined sx={{ fontSize: 32 }} />
+              </Box>
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{
+                  fontWeight: 700,
+                  color: 'text.primary',
+                  mb: 1
+                }}
+              >
+                Admin Login
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ maxWidth: 300, mx: 'auto' }}
+              >
+                Ingresa tus credenciales para acceder al panel de administración
+              </Typography>
+            </Box>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
+            {/* Form */}
+            <Box component="form" onSubmit={handleLogin} sx={{ mt: 3 }}>
+              <TextField
+                fullWidth
+                id="email"
+                name="email"
+                label="Correo Electrónico"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                sx={{ mb: 3 }}
+              />
 
-          {error && (
-            <div className="p-3 text-center text-sm text-red-700 bg-red-100 border border-red-300 rounded-md">
-              {error}
-            </div>
-          )}
+              <TextField
+                fullWidth
+                id="password"
+                name="password"
+                label="Contraseña"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                sx={{ mb: 3 }}
+              />
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {isLoading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Ingresando...
-                </span>
-              ) : (
-                'Ingresar'
+              {error && (
+                <Alert 
+                  severity="error" 
+                  sx={{ 
+                    mb: 3,
+                    borderRadius: 2
+                  }}
+                >
+                  {error}
+                </Alert>
               )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={isLoading}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  position: 'relative'
+                }}
+              >
+                {isLoading ? (
+                  <>
+                    <CircularProgress
+                      size={20}
+                      sx={{
+                        color: 'white',
+                        mr: 1
+                      }}
+                    />
+                    Ingresando...
+                  </>
+                ) : (
+                  'Ingresar'
+                )}
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 }

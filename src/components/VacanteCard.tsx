@@ -1,5 +1,19 @@
 import React from 'react';
-import { Button } from '@mui/material'; // Import MUI Button
+import { 
+  Card, 
+  CardContent, 
+  Typography, 
+  Button, 
+  Chip, 
+  Box, 
+  Stack,
+  Divider
+} from '@mui/material';
+import { 
+  LocationOnOutlined, 
+  WorkOutlineOutlined, 
+  AttachMoneyOutlined 
+} from '@mui/icons-material';
 
 // Definición de la interfaz Vacante basada en el esquema de la BD
 export interface Vacante {
@@ -33,52 +47,157 @@ interface VacanteCardProps {
 
 const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) => {
   return (
-    <div className="w-full bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center">
-      <div className="p-6 flex-grow">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{vacante.titulo_puesto}</h2>
-        <p className="text-sm text-primary dark:text-secondary font-semibold mb-3 uppercase tracking-wide">{vacante.departamento}</p>
+    <Card 
+      elevation={0}
+      sx={{ 
+        border: 1, 
+        borderColor: 'divider',
+        borderRadius: 2,
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          borderColor: 'primary.main'
+        }
+      }}
+    >
+      <CardContent sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3 }}>
+          {/* Contenido principal */}
+          <Box sx={{ flex: 1 }}>
+            {/* Header */}
+            <Box sx={{ mb: 2 }}>
+              <Typography 
+                variant="h6" 
+                component="h2" 
+                sx={{ 
+                  fontWeight: 600, 
+                  color: 'text.primary',
+                  mb: 0.5,
+                  fontSize: '1.1rem'
+                }}
+              >
+                {vacante.titulo_puesto}
+              </Typography>
+              <Chip 
+                label={vacante.departamento}
+                size="small"
+                color="primary"
+                variant="filled"
+                sx={{ 
+                  textTransform: 'uppercase',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.5px'
+                }}
+              />
+            </Box>
 
-        <div className="mb-5 space-y-2 text-sm text-text_primary_dark dark:text-gray-300">
-          <p>
-            <strong>Modalidad:</strong>
-            <span className="capitalize bg-secondary text-primary px-2 py-0.5 rounded-full text-xs font-medium ml-2">
-              {vacante.modalidad}
-            </span>
-          </p>
-          {vacante.ubicacion && (
-            <p><strong>Ubicación:</strong> {vacante.ubicacion}</p>
-          )}
-          {vacante.salario_rango_min && vacante.salario_rango_max && (
-            <p>
-              <strong>Salario:</strong> ${vacante.salario_rango_min} - ${vacante.salario_rango_max} {vacante.moneda || 'USD'}
-            </p>
-          )}
-          <div>
-            <p className="mb-1"><strong>Tecnologías:</strong></p>
-            <div className="flex flex-wrap gap-2">
-              {vacante.tecnologias_requeridas.map((tech, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium"
-                >
-                  {tech}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="p-6 sm:pl-0"> {/* Remove left padding on small screens and up for the button container */}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => onReferirClick(vacante)}
-          sx={{ width: { xs: '100%', sm: 'auto' } }} // Full width on extra-small, auto on small and up
-        >
-          Referir Candidato
-        </Button>
-      </div>
-    </div>
+            {/* Información básica */}
+            <Stack spacing={1.5} sx={{ mb: 2 }}>
+              {/* Modalidad */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <WorkOutlineOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                  Modalidad:
+                </Typography>
+                <Chip 
+                  label={vacante.modalidad}
+                  size="small"
+                  variant="outlined"
+                  sx={{ 
+                    textTransform: 'capitalize',
+                    fontSize: '0.75rem',
+                    height: 24
+                  }}
+                />
+              </Box>
+
+              {/* Ubicación */}
+              {vacante.ubicacion && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <LocationOnOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    Ubicación:
+                  </Typography>
+                  <Typography variant="body2" color="text.primary">
+                    {vacante.ubicacion}
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Salario */}
+              {vacante.salario_rango_min && vacante.salario_rango_max && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AttachMoneyOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    Salario:
+                  </Typography>
+                  <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
+                    ${vacante.salario_rango_min.toLocaleString()} - ${vacante.salario_rango_max.toLocaleString()} {vacante.moneda || 'USD'}
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Tecnologías */}
+            <Box>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                sx={{ fontWeight: 500, mb: 1 }}
+              >
+                Tecnologías requeridas:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {vacante.tecnologias_requeridas.map((tech, index) => (
+                  <Chip
+                    key={index}
+                    label={tech}
+                    size="small"
+                    variant="outlined"
+                    sx={{ 
+                      fontSize: '0.7rem',
+                      height: 24,
+                      bgcolor: 'grey.50',
+                      borderColor: 'grey.300',
+                      '&:hover': {
+                        bgcolor: 'grey.100'
+                      }
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Botón de acción */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: { xs: 'stretch', sm: 'flex-start' },
+            minWidth: { xs: 'auto', sm: 160 }
+          }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => onReferirClick(vacante)}
+              fullWidth
+              sx={{ 
+                height: 'fit-content',
+                py: 1.5,
+                fontWeight: 700,
+                fontSize: '0.875rem',
+                textTransform: 'none',
+                borderRadius: 2
+              }}
+            >
+              Referir Candidato
+            </Button>
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 
