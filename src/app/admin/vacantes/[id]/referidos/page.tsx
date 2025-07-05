@@ -24,7 +24,7 @@ export interface Referencia {
 }
 
 interface VerReferidosPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Función para obtener los referidos de una vacante específica
@@ -82,7 +82,7 @@ async function getVacanteById(id: string): Promise<Partial<Vacante> | null> {
 }
 
 export default async function VerReferidosPage({ params }: VerReferidosPageProps) {
-  const vacanteId = params.id;
+  const { id: vacanteId } = await params;
   const vacante = await getVacanteById(vacanteId);
   const referidos = await getReferidosPorVacante(vacanteId);
 

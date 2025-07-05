@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache';
 import Link from 'next/link';
 
 interface EditarVacantePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Server Action para actualizar la vacante
@@ -76,7 +76,7 @@ async function getVacanteById(id: string): Promise<Partial<Vacante> | null> {
 
 
 export default async function EditarVacantePage({ params }: EditarVacantePageProps) {
-  const vacanteId = params.id;
+  const { id: vacanteId } = await params;
   const vacante = await getVacanteById(vacanteId);
 
   if (!vacante) {

@@ -7,6 +7,7 @@ interface DeleteVacanteFormProps {
   vacanteId: string;
   // Tipamos la Server Action de forma genérica. FormData es lo que recibe.
   // La acción puede ser async, por lo que el retorno es Promise<void> o Promise<un_tipo_de_retorno_si_lo_hay>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   eliminarAction: (formData: FormData) => Promise<void | any>;
 }
 
