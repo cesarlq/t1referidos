@@ -19,16 +19,6 @@ async function actualizarVacanteAction(id: string, data: VacanteFormData): Promi
   if (authError || !user) {
     return { success: false, error: 'No autenticado.' };
   }
-   const { data: userProfile } = await supabase
-    .from('usuarios')
-    .select('rol')
-    .eq('id', user.id)
-    .single();
-    
-  if (userProfile?.rol !== 'administrador') {
-    return { success: false, error: 'No autorizado.'};
-  }
-
 
   const vacanteToUpdate = {
     ...data,

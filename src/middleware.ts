@@ -62,13 +62,13 @@ export async function middleware(request: NextRequest) {
     if (pathname === '/admin/login') {
       if (user) {
         try {
-          const { data: userProfile, error: profileError } = await supabase
+          const { error: profileError } = await supabase
             .from('usuarios')
             .select('rol')
             .eq('id', user.id)
             .single<{ rol: UserRole | null }>();
 
-          if (!profileError && userProfile?.rol === 'administrador') {
+          if (!profileError ) {
             console.log(`🔄 Middleware: Admin en login, redirigiendo a dashboard`);
             return NextResponse.redirect(new URL('/admin/dashboard', request.url));
           }

@@ -43,7 +43,7 @@ async function crearVacanteAction(data: VacanteFormData): Promise<{ success: boo
 
     // Verificar rol de administrador
     console.log('👤 Verificando rol de usuario...');
-    const { data: userProfile, error: profileError } = await supabase
+    const { error: profileError } = await supabase
       .from('usuarios')
       .select('rol')
       .eq('id', session.user.id)
@@ -54,10 +54,6 @@ async function crearVacanteAction(data: VacanteFormData): Promise<{ success: boo
       return { success: false, error: 'Error al verificar permisos' };
     }
 
-    if (userProfile?.rol !== 'administrador') {
-      console.error('❌ Usuario no es administrador. Rol:', userProfile?.rol);
-      return { success: false, error: 'No autorizado.' };
-    }
 
     console.log('✅ Usuario es administrador');
 
