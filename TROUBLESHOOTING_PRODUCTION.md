@@ -103,7 +103,28 @@ npm run build
 4. **Contactar Soporte**: Si todo lo anterior falla, contacta el soporte de Vercel o Supabase
 
 ## Archivos Modificados
-- `src/app/api/vacantes/route.ts` - Nueva API route
-- `src/app/admin/vacantes/nueva/page.tsx` - Actualizado para usar API route
-- `src/lib/debug.ts` - Sistema de debugging
+- `src/app/api/vacantes/route.ts` - Nueva API route para crear y actualizar vacantes
+- `src/app/api/vacantes/[id]/route.ts` - API route para obtener vacante por ID
+- `src/app/admin/vacantes/nueva/page.tsx` - Convertido a Client Component, usa API route
+- `src/app/admin/vacantes/[id]/editar/page.tsx` - Convertido a Client Component, usa API routes
+- `src/lib/debug.ts` - Sistema de debugging mejorado
 - `TROUBLESHOOTING_PRODUCTION.md` - Esta guía
+
+## Cambios Realizados
+
+### 1. Conversión de Server Actions a API Routes
+- **Problema**: Las Server Actions pueden fallar silenciosamente en Vercel
+- **Solución**: Se crearon API routes tradicionales que son más confiables en producción
+
+### 2. Client Components
+- **Problema**: No se pueden pasar funciones como props a Server Components
+- **Solución**: Se convirtieron las páginas a Client Components usando `'use client'`
+
+### 3. Manejo de Estados de Carga
+- Se agregó manejo de estados de loading y error en la página de editar
+- Mejor experiencia de usuario con indicadores visuales
+
+### 4. Sistema de Debug Completo
+- Logs detallados en cada paso del proceso
+- Verificación automática de variables de entorno
+- Mensajes de error más descriptivos
