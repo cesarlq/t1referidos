@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
   Box,
@@ -19,6 +19,7 @@ import { useAuthWithSnackbar } from '@/hooks/useApiWithSnackbar';
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createSupabaseBrowserClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,8 +51,42 @@ export default function LoginForm() {
     });
 
     if (result) {
-      router.refresh();
-      router.push('/admin/dashboard');
+      // Leer el parámetro 'next' de la URL
+      const nextUrl = searchParams.get('next');
+      let redirectTo = '/admin/dashboard'; // Fallback
+
+      if (nextUrl) {
+        // Validar que nextUrl sea una ruta relativa interna para evitar redirecciones abiertas
+        // y que pertenezca a la sección de administración.
+        if (nextUrl.startsWith('/admin/') || nextUrl.startsWith('/')) {
+          try {
+            // Decodificar en caso de que esté codificado como %2Fadmin%2Fvacantes
+            const decodedNextUrl = decodeURIComponent(nextUrl);
+            // Simple validación para asegurar que es una ruta admin
+            if (decodedNextUrl.startsWith('/admin/')) {
+              redirectTo = decodedNextUrl;
+            } else {
+              console.warn(`LoginForm: El parámetro 'next' (${decodedNextUrl}) no es una ruta de admin válida. Redirigiendo al dashboard.`);
+            }
+          } catch (e) {
+            console.error("LoginForm: Error al decodificar nextUrl", e);
+            // Mantener el fallback al dashboard
+          }
+        } else {
+          console.warn(`LoginForm: El parámetro 'next' (${nextUrl}) no parece ser una ruta relativa interna. Redirigiendo al dashboard.`);
+        }
+      }
+
+      // Primero redirigir, luego refrescar la nueva página.
+      // Esto evita que el middleware redirija desde /admin/login al dashboard
+      // antes de que hayamos tenido la oportunidad de ir a `redirectTo`.
+      router.push(redirectTo);
+      // Considerar si router.refresh() es necesario aquí o si la navegación a la nueva ruta
+      // ya carga los datos frescos. Si la nueva página usa Server Components que dependen de la sesión,
+      // un refresh podría ser útil, pero a menudo la navegación a una nueva ruta ya hace lo necesario.
+      // Por ahora, lo comentaremos para ver el comportamiento, ya que el middleware se ejecutará en la nueva ruta.
+      // router.refresh();
+
     } else {
       setError('Error al iniciar sesión. Por favor, verifica tus credenciales.');
     }
