@@ -170,7 +170,23 @@ const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) =>
                 ))}
               </Box>
             </Box>
+
+            {/* {Description Section} */}
+            <Box  sx={{ display: 'grid', flexWrap: 'wrap', gap: 0.5, paddingTop: 2 }}>
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary" 
+                  sx={{ fontWeight: 500, mb: 1 }}
+                >
+                  Descripcon del Puesto:
+                </Typography>
+                <Typography variant="body2" color="text.primary" sx={{ flex: 1 }}>
+                  {vacante.descripcion_puesto}
+                </Typography>
+            </Box>
           </Box>
+
+
 
           {/* Botón de acción */}
           <Box sx={{ 
