@@ -152,6 +152,55 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
     }
   };
 
+  // Función de debug que ejecuta la acción directamente
+  const handleDebugSubmit = async (values: VacanteFormData) => {
+    console.log('🐛 DEBUG: Iniciando handleDebugSubmit');
+    console.log('🐛 DEBUG: Valores recibidos:', values);
+    
+    try {
+      // Datos de prueba mínimos
+      const testData: VacanteFormData = {
+        titulo_puesto: values.titulo_puesto || 'Test Vacante Debug',
+        departamento: values.departamento || 'IT',
+        modalidad: values.modalidad || 'remoto',
+        descripcion_puesto: values.descripcion_puesto || 'Esta es una vacante de prueba para debugging. '.repeat(5),
+        tecnologias_requeridas: values.tecnologias_requeridas.filter(t => t.trim() !== '') || ['JavaScript'],
+        ubicacion: values.ubicacion || '',
+        salario_rango_min: values.salario_rango_min === '' ? '' : values.salario_rango_min,
+        salario_rango_max: values.salario_rango_max === '' ? '' : values.salario_rango_max,
+        moneda: values.moneda === '' ? '' : values.moneda,
+        responsabilidades: values.responsabilidades || '',
+        requisitos: values.requisitos || '',
+        beneficios: values.beneficios || '',
+        fecha_cierre: values.fecha_cierre || '',
+        esta_activa: values.esta_activa ?? true,
+      };
+
+      console.log('🐛 DEBUG: Datos de prueba preparados:', testData);
+      
+      console.log('🐛 DEBUG: Ejecutando onSubmitAction directamente...');
+      const response = await onSubmitAction(testData);
+      console.log('🐛 DEBUG: Respuesta directa:', response);
+      
+      if (response.success) {
+        console.log('🐛 DEBUG: ¡Éxito! La vacante se creó correctamente');
+        setServerError(null);
+        alert('¡DEBUG: Vacante creada exitosamente!');
+        router.push('/admin/vacantes');
+        router.refresh();
+      } else {
+        console.error('🐛 DEBUG: Error en la respuesta:', response.error);
+        setServerError(`DEBUG Error: ${response.error}`);
+        alert(`DEBUG Error: ${response.error}`);
+      }
+    } catch (error) {
+      console.error('🐛 DEBUG: Error inesperado:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setServerError(`DEBUG Error inesperado: ${errorMessage}`);
+      alert(`DEBUG Error inesperado: ${errorMessage}`);
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Paper 
@@ -510,6 +559,30 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
                     >
                       Cancelar
                     </Button>
+                    
+                    {/* Botón de Debug - Solo visible con ?debug=true */}
+                    {(process.env.NODE_ENV === 'development' || 
+                      (typeof window !== 'undefined' && window.location.search.includes('debug=true'))) && (
+                      <Button
+                        variant="outlined"
+                        color="warning"
+                        onClick={() => handleDebugSubmit(values)}
+                        disabled={isLoading}
+                        sx={{ 
+                          textTransform: 'none',
+                          borderColor: 'warning.main',
+                          color: 'warning.main',
+                          '&:hover': {
+                            borderColor: 'warning.dark',
+                            color: 'warning.dark',
+                            bgcolor: 'warning.50'
+                          }
+                        }}
+                      >
+                        🐛 DEBUG: Crear Vacante
+                      </Button>
+                    )}
+                    
                     <Button
                       type="submit"
                       variant="contained"
