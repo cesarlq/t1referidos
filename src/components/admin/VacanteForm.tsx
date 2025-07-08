@@ -32,6 +32,7 @@ import {
 import { Vacante } from '@/components/VacanteCard';
 import { useFormWithSnackbar } from '@/hooks/useApiWithSnackbar';
 import DebugInfo from './DebugInfo';
+import RichTextEditor from './RichTextEditor';
 
 // Interfaz para los datos del formulario de vacante
 export interface VacanteFormData extends Omit<Partial<Vacante>, 'id' | 'tecnologias_requeridas' | 'modalidad' | 'moneda' | 'salario_rango_min' | 'salario_rango_max' | 'esta_activa'> {
@@ -330,17 +331,13 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
                         </Select>
                       </FormControl>
 
-                      <TextField
-                        fullWidth
-                        name="descripcion_puesto"
+                      <RichTextEditor
+                        value={values.descripcion_puesto}
+                        onChange={(value) => setFieldValue('descripcion_puesto', value)}
                         label="Descripción del Puesto"
                         required
-                        multiline
-                        rows={4}
-                        value={values.descripcion_puesto}
-                        onChange={(e) => setFieldValue('descripcion_puesto', e.target.value)}
                         error={touched.descripcion_puesto && !!errors.descripcion_puesto}
-                        helperText={touched.descripcion_puesto && errors.descripcion_puesto}
+                        helperText={touched.descripcion_puesto && errors.descripcion_puesto ? String(errors.descripcion_puesto) : undefined}
                         disabled={isLoading}
                       />
                     </Stack>
