@@ -8,37 +8,92 @@ import { revalidatePath } from 'next/cache';
 async function crearVacanteAction(data: VacanteFormData): Promise<{ success: boolean; error?: string; data?: any }> {
   "use server";
 
-  const supabase = createSupabaseServerClient();
+  try {
+    console.log('🚀 Server Action iniciada - crearVacanteAction');
+    console.log('📝 Datos recibidos:', JSON.stringify(data, null, 2));
 
-  // Validación de sesión y rol (aunque el layout ya protege, es bueno tener doble check en actions)
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return { success: false, error: 'No autenticado.' };
-  const { data: userProfile } = await supabase.from('usuarios').select('rol').eq('id', session.user.id).single();
-  if (userProfile?.rol !== 'administrador') return { success: false, error: 'No autorizado.'};
+    // Verificar variables de entorno
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Variables de entorno de Supabase no encontradas');
+      return { success: false, error: 'Error de configuración del servidor' };
+    }
 
-  // Preparar datos para insertar, asegurándose de que los campos opcionales sean null si están vacíos
-  const vacanteToInsert = {
-    ...data,
-    // Los campos numéricos y de fecha ya se manejan en el componente VacanteForm para ser null o valor
-    // Asegurarse que tecnologias_requeridas sea un array, incluso si está vacío.
-    tecnologias_requeridas: data.tecnologias_requeridas.filter(t => t.trim() !== ''),
-    creada_por_admin_id: session.user.id, // Asociar con el admin que la crea
-  };
+    console.log('✅ Variables de entorno OK');
 
-  const { data: newData, error } = await supabase
-    .from('vacantes')
-    .insert(vacanteToInsert)
-    .select() // Para obtener los datos insertados, opcional
-    .single(); // Asumimos que insertamos una y queremos que devuelva esa una
+    const supabase = createSupabaseServerClient();
 
-  if (error) {
-    console.error("Error creating vacante:", error);
-    return { success: false, error: error.message };
+    // Validación de sesión y rol
+    console.log('🔐 Verificando sesión...');
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('❌ Error al obtener sesión:', sessionError);
+      return { success: false, error: 'Error de autenticación' };
+    }
+
+    if (!session) {
+      console.error('❌ No hay sesión activa');
+      return { success: false, error: 'No autenticado.' };
+    }
+
+    console.log('✅ Sesión válida para usuario:', session.user.email);
+
+    // Verificar rol de administrador
+    console.log('👤 Verificando rol de usuario...');
+    const { data: userProfile, error: profileError } = await supabase
+      .from('usuarios')
+      .select('rol')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profileError) {
+      console.error('❌ Error al obtener perfil de usuario:', profileError);
+      return { success: false, error: 'Error al verificar permisos' };
+    }
+
+    if (userProfile?.rol !== 'administrador') {
+      console.error('❌ Usuario no es administrador. Rol:', userProfile?.rol);
+      return { success: false, error: 'No autorizado.' };
+    }
+
+    console.log('✅ Usuario es administrador');
+
+    // Preparar datos para insertar
+    console.log('📋 Preparando datos para insertar...');
+    const vacanteToInsert = {
+      ...data,
+      tecnologias_requeridas: data.tecnologias_requeridas.filter(t => t.trim() !== ''),
+      creada_por_admin_id: session.user.id,
+    };
+
+    console.log('📝 Datos preparados:', JSON.stringify(vacanteToInsert, null, 2));
+
+    // Insertar en la base de datos
+    console.log('💾 Insertando en base de datos...');
+    const { data: newData, error } = await supabase
+      .from('vacantes')
+      .insert(vacanteToInsert)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error al insertar vacante:', error);
+      return { success: false, error: `Error de base de datos: ${error.message}` };
+    }
+
+    console.log('✅ Vacante creada exitosamente:', newData);
+
+    revalidatePath('/admin/vacantes');
+    return { success: true, data: newData };
+
+  } catch (error) {
+    console.error('💥 Error inesperado en crearVacanteAction:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    return { success: false, error: `Error del servidor: ${errorMessage}` };
   }
-
-  revalidatePath('/admin/vacantes'); // Actualizar la lista de vacantes
-  return { success: true, data: newData };
-  // La redirección se maneja en el cliente a través del router.push en VacanteForm
 }
 
 

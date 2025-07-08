@@ -26,22 +26,39 @@ export const useApiWithSnackbar = () => {
     } = options;
 
     try {
+      console.log('🔄 useApiWithSnackbar - Iniciando executeRequest');
       setIsLoading(true);
       
       if (showLoading) {
+        console.log('ℹ️ Mostrando mensaje de carga:', loadingMessage);
         showInfo(loadingMessage);
       }
 
+      console.log('⚡ Ejecutando requestFn...');
       const result = await requestFn();
+      console.log('✅ requestFn completada exitosamente:', result);
       
       showSuccess(successMessage);
       return result;
     } catch (error) {
-      console.error('API Error:', error);
-      const message = error instanceof Error ? error.message : errorMessage;
-      showError(`${errorMessage}: ${message}`);
+      console.error('💥 Error en executeRequest:', error);
+      
+      // Mejorar el manejo de errores
+      let finalErrorMessage = errorMessage;
+      
+      if (error instanceof Error) {
+        finalErrorMessage = error.message;
+      } else if (typeof error === 'string') {
+        finalErrorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        finalErrorMessage = String(error.message);
+      }
+      
+      console.error('📨 Mostrando error al usuario:', finalErrorMessage);
+      showError(finalErrorMessage);
       return null;
     } finally {
+      console.log('🏁 executeRequest finalizado, setIsLoading(false)');
       setIsLoading(false);
     }
   };

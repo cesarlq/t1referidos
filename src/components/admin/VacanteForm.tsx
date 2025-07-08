@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { Vacante } from '@/components/VacanteCard';
 import { useFormWithSnackbar } from '@/hooks/useApiWithSnackbar';
+import DebugInfo from './DebugInfo';
 
 // Interfaz para los datos del formulario de vacante
 export interface VacanteFormData extends Omit<Partial<Vacante>, 'id' | 'tecnologias_requeridas' | 'modalidad' | 'moneda' | 'salario_rango_min' | 'salario_rango_max' | 'esta_activa'> {
@@ -105,30 +106,49 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
   };
 
   const handleSubmit = async (values: VacanteFormData) => {
+    console.log('🎯 Iniciando handleSubmit en VacanteForm');
+    console.log('📋 Valores del formulario:', values);
+    
     setServerError(null);
 
-    // Limpiar valores numéricos vacíos a null para la BD
-    const payload = {
-      ...values,
-      salario_rango_min: values.salario_rango_min === '' ? null : Number(values.salario_rango_min),
-      salario_rango_max: values.salario_rango_max === '' ? null : Number(values.salario_rango_max),
-      moneda: values.moneda === '' ? null : values.moneda,
-      fecha_cierre: values.fecha_cierre === '' ? null : values.fecha_cierre,
-    };
+    try {
+      // Limpiar valores numéricos vacíos a null para la BD
+      const payload = {
+        ...values,
+        salario_rango_min: values.salario_rango_min === '' ? null : Number(values.salario_rango_min),
+        salario_rango_max: values.salario_rango_max === '' ? null : Number(values.salario_rango_max),
+        moneda: values.moneda === '' ? null : values.moneda,
+        fecha_cierre: values.fecha_cierre === '' ? null : values.fecha_cierre,
+      };
 
-    const result = await submitForm(async () => {
-      const response = await onSubmitAction(payload as VacanteFormData);
-      if (!response.success) {
-        throw new Error(response.error || 'Error al guardar la vacante');
+      console.log('📦 Payload preparado:', payload);
+
+      const result = await submitForm(async () => {
+        console.log('🔄 Ejecutando onSubmitAction...');
+        const response = await onSubmitAction(payload as VacanteFormData);
+        console.log('📨 Respuesta de onSubmitAction:', response);
+        
+        if (!response.success) {
+          console.error('❌ Error en la respuesta:', response.error);
+          throw new Error(response.error || 'Error al guardar la vacante');
+        }
+        return response;
+      }, isEditMode ? 'vacante actualizada' : 'vacante creada');
+
+      console.log('✅ Resultado de submitForm:', result);
+
+      if (result) {
+        console.log('🚀 Redirigiendo a /admin/vacantes');
+        router.push('/admin/vacantes');
+        router.refresh();
+      } else {
+        console.error('❌ submitForm devolvió null/false');
+        setServerError('Error al guardar la vacante. Por favor, inténtalo de nuevo.');
       }
-      return response;
-    }, isEditMode ? 'vacante actualizada' : 'vacante creada');
-
-    if (result) {
-      router.push('/admin/vacantes');
-      router.refresh();
-    } else {
-      setServerError('Error al guardar la vacante. Por favor, inténtalo de nuevo.');
+    } catch (error) {
+      console.error('💥 Error inesperado en handleSubmit:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setServerError(`Error inesperado: ${errorMessage}`);
     }
   };
 
@@ -180,6 +200,17 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
 
         {/* Form */}
         <Box sx={{ p: 4 }}>
+          <DebugInfo 
+            data={{
+              formInitialValues,
+              isLoading,
+              serverError,
+              isEditMode,
+              environment: process.env.NODE_ENV
+            }} 
+            title="Debug Info - Formulario de Vacante" 
+          />
+          
           <Formik
             initialValues={formInitialValues}
             validationSchema={validationSchema}
