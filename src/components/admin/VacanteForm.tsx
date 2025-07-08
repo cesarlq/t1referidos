@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, useFieldArray, Controller, FieldArrayPath } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -92,9 +92,10 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
     mode: 'onChange'
   });
 
-const { fields, append, remove } = useFieldArray<VacanteFormData>({
+
+const { fields, append, remove } = useFieldArray({
   control,
-  name: 'tecnologias_requeridas'
+  name: 'tecnologias_requeridas' as FieldArrayPath<VacanteFormData>
 });
 
   const watchedValues = watch();
