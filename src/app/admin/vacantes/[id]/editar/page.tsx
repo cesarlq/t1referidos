@@ -1,100 +1,115 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
-import VacanteForm, { VacanteFormData } from '@/components/admin/VacanteForm';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { Vacante } from '@/components/VacanteCard'; // Reutilizamos interfaz
-import { revalidatePath } from 'next/cache';
-import Link from 'next/link';
+'use client';
 
-interface EditarVacantePageProps {
-  params: Promise<{ id: string }>;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import VacanteForm, { VacanteFormData } from '@/components/admin/VacanteForm';
+import { Vacante } from '@/components/VacanteCard';
+import Link from 'next/link';
+import { CircularProgress, Alert, Box } from '@mui/material';
+
+// Función para actualizar la vacante usando API route
+async function actualizarVacanteAction(id: string, data: VacanteFormData): Promise<{ success: boolean; error?: string; data?: any }> {
+  try {
+    const response = await fetch('/api/vacantes', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id, ...data }),
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: result.error || 'Error al actualizar la vacante' };
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error calling API:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Error de conexión' 
+    };
+  }
 }
 
-// Server Action para actualizar la vacante
-async function actualizarVacanteAction(id: string, data: VacanteFormData): Promise<{ success: boolean; error?: string; data?: any }> {
-  "use server";
-
-  const supabase = createSupabaseServerClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return { success: false, error: 'No autenticado.' };
-  }
-   const { data: userProfile } = await supabase
-    .from('usuarios')
-    .select('rol')
-    .eq('id', user.id)
-    .single();
+// Función para obtener la vacante por ID
+async function getVacanteById(id: string): Promise<{ success: boolean; data?: Partial<Vacante>; error?: string }> {
+  try {
+    const response = await fetch(`/api/vacantes/${id}`);
+    const result = await response.json();
     
-  if (userProfile?.rol !== 'administrador') {
-    return { success: false, error: 'No autorizado.'};
+    if (!response.ok) {
+      return { success: false, error: result.error || 'Error al cargar la vacante' };
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error fetching vacante:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Error de conexión' 
+    };
   }
+}
 
+export default function EditarVacantePage() {
+  const params = useParams();
+  const vacanteId = params.id as string;
+  
+  const [vacante, setVacante] = useState<Partial<Vacante> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const vacanteToUpdate = {
-    ...data,
-    tecnologias_requeridas: data.tecnologias_requeridas.filter(t => t.trim() !== ''),
-    // El campo updated_at se actualiza automáticamente por el trigger en la DB
+  useEffect(() => {
+    const fetchVacante = async () => {
+      if (!vacanteId) return;
+      
+      setLoading(true);
+      const result = await getVacanteById(vacanteId);
+      
+      if (result.success && result.data) {
+        setVacante(result.data);
+        setError(null);
+      } else {
+        setError(result.error || 'Error al cargar la vacante');
+        setVacante(null);
+      }
+      
+      setLoading(false);
+    };
+
+    fetchVacante();
+  }, [vacanteId]);
+
+  // Función que bindea el ID a la acción de actualizar
+  const boundActualizarVacanteAction = (data: VacanteFormData) => {
+    return actualizarVacanteAction(vacanteId, data);
   };
 
-  console.log('ID recibido en actualizarVacanteAction:', id);
-  console.log('Datos a actualizar:', JSON.stringify(vacanteToUpdate, null, 2)); // Usar null, 2 para pretty print
-
-  const { data: updatedData, error } = await supabase
-    .from('vacantes')
-    .update(vacanteToUpdate)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error updating vacante:", error);
-    if (error.code === 'PGRST116' && error.details?.includes('0 rows')) {
-      return { success: false, error: "Error al actualizar: La vacante no fue encontrada o ya ha sido eliminada. Por favor, verifique el listado de vacantes." };
-    }
-    return { success: false, error: `Error del servidor: ${error.message}` };
-  }
-
-  revalidatePath('/admin/vacantes'); // Actualizar la lista
-  revalidatePath(`/admin/vacantes/${id}/editar`); // Actualizar esta misma página si es necesario
-  return { success: true, data: updatedData };
-}
-
-async function getVacanteById(id: string): Promise<Partial<Vacante> | null> {
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('vacantes')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching vacante by id for edit:', error);
-    return null;
-  }
-  return data as Partial<Vacante>;
-}
-
-
-export default async function EditarVacantePage({ params }: EditarVacantePageProps) {
-  const { id: vacanteId } = await params;
-  const vacante = await getVacanteById(vacanteId);
-
-  if (!vacante) {
-    // Podríamos mostrar un mensaje de "No encontrado" o redirigir
+  if (loading) {
     return (
-        <div className="p-6 bg-white shadow-md rounded-lg">
-            <h1 className="text-xl font-semibold text-red-600">Vacante no encontrada</h1>
-            <p className="text-gray-600 mt-2">No se pudo cargar la información de la vacante para editar.</p>
-            <Link href="/admin/vacantes" className="mt-4 inline-block text-indigo-600 hover:text-indigo-800">
-              Volver al listado de vacantes
-            </Link>
-        </div>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
     );
   }
 
-  // "Bindeamos" el vacanteId a la Server Action.
-  // Esto crea una nueva Server Action que solo espera VacanteFormData.
-  const boundActualizarVacanteAction = actualizarVacanteAction.bind(null, vacanteId);
+  if (error || !vacante) {
+    return (
+      <div className="p-6 bg-white shadow-md rounded-lg">
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error || 'Vacante no encontrada'}
+        </Alert>
+        <p className="text-gray-600 mt-2">No se pudo cargar la información de la vacante para editar.</p>
+        <Link href="/admin/vacantes" className="mt-4 inline-block text-indigo-600 hover:text-indigo-800">
+          Volver al listado de vacantes
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -106,7 +121,7 @@ export default async function EditarVacantePage({ params }: EditarVacantePagePro
       </div>
       <VacanteForm
         initialData={vacante}
-        onSubmitAction={boundActualizarVacanteAction} // Pasamos la acción bindeada
+        onSubmitAction={boundActualizarVacanteAction}
         isEditMode={true}
       />
     </div>

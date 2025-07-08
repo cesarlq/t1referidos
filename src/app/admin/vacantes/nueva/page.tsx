@@ -1,3 +1,5 @@
+'use client';
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import VacanteForm, { VacanteFormData } from '@/components/admin/VacanteForm';
@@ -28,7 +30,6 @@ async function crearVacanteAction(data: VacanteFormData): Promise<{ success: boo
     };
   }
 }
-
 
 export default function NuevaVacantePage() {
   // El layout /admin/layout.tsx ya protege esta página.
