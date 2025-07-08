@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Formik, FieldArray } from 'formik';
-import * as Yup from 'yup';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -21,7 +20,8 @@ import {
   IconButton,
   Alert,
   Divider,
-  CircularProgress
+  CircularProgress,
+  FormHelperText
 } from '@mui/material';
 import { 
   AddOutlined, 
@@ -35,12 +35,12 @@ import DebugInfo from './DebugInfo';
 import RichTextEditor from './RichTextEditor';
 
 // Interfaz para los datos del formulario de vacante
-export interface VacanteFormData extends Omit<Partial<Vacante>, 'id' | 'tecnologias_requeridas' | 'modalidad' | 'moneda' | 'salario_rango_min' | 'salario_rango_max' | 'esta_activa'> {
+export interface VacanteFormData {
   titulo_puesto: string;
   departamento: string;
   modalidad: 'remoto' | 'presencial' | 'hibrido';
   descripcion_puesto: string;
-  tecnologias_requeridas: string[];
+  tecnologias_requeridas: string[]; // Asegúrate de que esto esté definido como array
   ubicacion?: string;
   salario_rango_min?: number | '';
   salario_rango_max?: number | '';
@@ -52,31 +52,6 @@ export interface VacanteFormData extends Omit<Partial<Vacante>, 'id' | 'tecnolog
   esta_activa: boolean;
 }
 
-// Esquema de validación con Yup
-const validationSchema = Yup.object().shape({
-  titulo_puesto: Yup.string().required('El título del puesto es requerido'),
-  departamento: Yup.string().required('El departamento es requerido'),
-  modalidad: Yup.string().oneOf(['remoto', 'presencial', 'hibrido'], 'Modalidad inválida').required('La modalidad es requerida'),
-  descripcion_puesto: Yup.string().required('La descripción es requerida').min(50, 'Debe tener al menos 50 caracteres'),
-  tecnologias_requeridas: Yup.array().of(Yup.string().required("Tecnología no puede estar vacía")).min(1, 'Debe agregar al menos una tecnología'),
-  ubicacion: Yup.string(),
-  salario_rango_min: Yup.number().typeError('Debe ser un número').min(0, 'No puede ser negativo').nullable(),
-  salario_rango_max: Yup.number().typeError('Debe ser un número').min(0, 'No puede ser negativo')
-    .nullable()
-    .test('is-greater-than-min', 'El salario máximo debe ser mayor o igual al mínimo', function(value) {
-      const { salario_rango_min } = this.parent;
-      if (salario_rango_min && value) {
-        return value >= salario_rango_min;
-      }
-      return true;
-    }),
-  moneda: Yup.string().oneOf(['USD', 'MXN', 'EUR', ''], 'Moneda inválida').nullable(),
-  responsabilidades: Yup.string(),
-  requisitos: Yup.string(),
-  beneficios: Yup.string(),
-  fecha_cierre: Yup.date().nullable().min(new Date(), 'La fecha de cierre no puede ser en el pasado'),
-  esta_activa: Yup.boolean().required(),
-});
 
 interface VacanteFormProps {
   initialData?: Partial<Vacante>;
@@ -106,6 +81,24 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
     esta_activa: initialData?.esta_activa ?? true,
   };
 
+  // React Hook Form setup
+  const {
+    control,
+    handleSubmit: hookFormHandleSubmit,
+    formState: { errors, isValid },
+    watch
+  } = useForm<VacanteFormData>({
+    defaultValues: formInitialValues,
+    mode: 'onChange'
+  });
+
+const { fields, append, remove } = useFieldArray<VacanteFormData>({
+  control,
+  name: 'tecnologias_requeridas'
+});
+
+  const watchedValues = watch();
+
   const handleSubmit = async (values: VacanteFormData) => {
     console.log('🎯 Iniciando handleSubmit en VacanteForm');
     console.log('📋 Valores del formulario:', values);
@@ -113,13 +106,24 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
     setServerError(null);
 
     try {
+      // Asegurar que tecnologias_requeridas sea un array
+      const formData: VacanteFormData = {
+        ...values,
+        tecnologias_requeridas: values.tecnologias_requeridas || [''],
+        ubicacion: values.ubicacion || '',
+        responsabilidades: values.responsabilidades || '',
+        requisitos: values.requisitos || '',
+        beneficios: values.beneficios || '',
+        fecha_cierre: values.fecha_cierre || '',
+      };
+
       // Limpiar valores numéricos vacíos a null para la BD
       const payload = {
-        ...values,
-        salario_rango_min: values.salario_rango_min === '' ? null : Number(values.salario_rango_min),
-        salario_rango_max: values.salario_rango_max === '' ? null : Number(values.salario_rango_max),
-        moneda: values.moneda === '' ? null : values.moneda,
-        fecha_cierre: values.fecha_cierre === '' ? null : values.fecha_cierre,
+        ...formData,
+        salario_rango_min: formData.salario_rango_min === '' ? null : Number(formData.salario_rango_min),
+        salario_rango_max: formData.salario_rango_max === '' ? null : Number(formData.salario_rango_max),
+        moneda: formData.moneda === '' ? null : formData.moneda,
+        fecha_cierre: formData.fecha_cierre === '' ? null : formData.fecha_cierre,
       };
 
       console.log('📦 Payload preparado:', payload);
@@ -261,188 +265,208 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
             title="Debug Info - Formulario de Vacante" 
           />
           
-          <Formik
-            initialValues={formInitialValues}
-            validationSchema={validationSchema}
-            onSubmit={() => {}} // No se usa más
-            enableReinitialize
-          >
-            {({ values, errors, touched, setFieldValue }) => (
-              <div>
-                <Stack spacing={4}>
-                  {/* Información Básica */}
-                  <Paper 
-                    elevation={0} 
-                    sx={{ 
-                      p: 3, 
-                      border: 1, 
-                      borderColor: 'divider',
-                      borderRadius: 2 
-                    }}
-                  >
-                    <Typography 
-                      variant="h6" 
-                      component="h3" 
-                      sx={{ 
-                        fontWeight: 600, 
-                        color: 'text.primary', 
-                        mb: 3 
-                      }}
-                    >
-                      Información Básica
-                    </Typography>
-                    <Stack spacing={3}>
-                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          <form onSubmit={hookFormHandleSubmit(handleSubmit)}>
+            <Stack spacing={4}>
+              {/* Información Básica */}
+              <Paper 
+                elevation={0} 
+                sx={{ 
+                  p: 3, 
+                  border: 1, 
+                  borderColor: 'divider',
+                  borderRadius: 2 
+                }}
+              >
+                <Typography 
+                  variant="h6" 
+                  component="h3" 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: 'text.primary', 
+                    mb: 3 
+                  }}
+                >
+                  Información Básica
+                </Typography>
+                <Stack spacing={3}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <Controller
+                      name="titulo_puesto"
+                      control={control}
+                      render={({ field, fieldState: { error } }) => (
                         <TextField
+                          {...field}
                           fullWidth
-                          name="titulo_puesto"
                           label="Título del Puesto"
                           required
-                          value={values.titulo_puesto}
-                          onChange={(e) => setFieldValue('titulo_puesto', e.target.value)}
-                          error={touched.titulo_puesto && !!errors.titulo_puesto}
-                          helperText={touched.titulo_puesto && errors.titulo_puesto}
+                          error={!!error}
+                          helperText={error?.message}
                           disabled={isLoading}
                         />
+                      )}
+                    />
+                    <Controller
+                      name="departamento"
+                      control={control}
+                      render={({ field, fieldState: { error } }) => (
                         <TextField
+                          {...field}
                           fullWidth
-                          name="departamento"
                           label="Departamento"
                           required
-                          value={values.departamento}
-                          onChange={(e) => setFieldValue('departamento', e.target.value)}
-                          error={touched.departamento && !!errors.departamento}
-                          helperText={touched.departamento && errors.departamento}
+                          error={!!error}
+                          helperText={error?.message}
                           disabled={isLoading}
                         />
-                      </Stack>
+                      )}
+                    />
+                  </Stack>
 
-                      <FormControl fullWidth disabled={isLoading}>
+                  <Controller
+                    name="modalidad"
+                    control={control}
+                    render={({ field, fieldState: { error } }) => (
+                      <FormControl fullWidth disabled={isLoading} error={!!error}>
                         <InputLabel required>Modalidad</InputLabel>
                         <Select
-                          name="modalidad"
-                          value={values.modalidad}
-                          onChange={(e) => setFieldValue('modalidad', e.target.value)}
+                          {...field}
                           label="Modalidad"
                         >
                           <MenuItem value="remoto">Remoto</MenuItem>
                           <MenuItem value="presencial">Presencial</MenuItem>
                           <MenuItem value="hibrido">Híbrido</MenuItem>
                         </Select>
+                        {error && <FormHelperText>{error.message}</FormHelperText>}
                       </FormControl>
+                    )}
+                  />
 
+                  <Controller
+                    name="descripcion_puesto"
+                    control={control}
+                    render={({ field, fieldState: { error } }) => (
                       <RichTextEditor
-                        value={values.descripcion_puesto}
-                        onChange={(value) => setFieldValue('descripcion_puesto', value)}
+                        value={field.value}
+                        onChange={field.onChange}
                         label="Descripción del Puesto"
                         required
-                        error={touched.descripcion_puesto && !!errors.descripcion_puesto}
-                        helperText={touched.descripcion_puesto && errors.descripcion_puesto ? String(errors.descripcion_puesto) : undefined}
+                        error={!!error}
+                        helperText={error?.message}
                         disabled={isLoading}
                       />
-                    </Stack>
-                  </Paper>
+                    )}
+                  />
+                </Stack>
+              </Paper>
 
-                  {/* Tecnologías */}
-                  <Paper 
-                    elevation={0} 
-                    sx={{ 
-                      p: 3, 
-                      border: 1, 
-                      borderColor: 'divider',
-                      borderRadius: 2 
-                    }}
-                  >
-                    <Typography 
-                      variant="h6" 
-                      component="h3" 
-                      sx={{ 
-                        fontWeight: 600, 
-                        color: 'text.primary', 
-                        mb: 3 
-                      }}
-                    >
-                      Tecnologías Requeridas
-                    </Typography>
-                    <FieldArray name="tecnologias_requeridas">
-                      {({ push, remove }) => (
-                        <Stack spacing={2}>
-                          {values.tecnologias_requeridas.map((tech: string, index: number) => (
-                            <Stack key={index} direction="row" spacing={1} alignItems="center">
-                              <TextField
-                                fullWidth
-                                name={`tecnologias_requeridas.${index}`}
-                                label={`Tecnología ${index + 1}`}
-                                value={tech}
-                                onChange={(e) => setFieldValue(`tecnologias_requeridas.${index}`, e.target.value)}
-                                disabled={isLoading}
-                              />
-                              <IconButton
-                                onClick={() => remove(index)}
-                                disabled={values.tecnologias_requeridas.length <= 1 || isLoading}
-                                color="error"
-                                sx={{ minWidth: 40 }}
-                              >
-                                <RemoveOutlined />
-                              </IconButton>
-                            </Stack>
-                          ))}
-                          <Button
-                            startIcon={<AddOutlined />}
-                            onClick={() => push('')}
-                            variant="outlined"
+              {/* Tecnologías */}
+              <Paper 
+                elevation={0} 
+                sx={{ 
+                  p: 3, 
+                  border: 1, 
+                  borderColor: 'divider',
+                  borderRadius: 2 
+                }}
+              >
+                <Typography 
+                  variant="h6" 
+                  component="h3" 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: 'text.primary', 
+                    mb: 3 
+                  }}
+                >
+                  Tecnologías Requeridas
+                </Typography>
+                <Stack spacing={2}>
+                  {fields.map((field, index) => (
+                    <Stack key={field.id} direction="row" spacing={1} alignItems="center">
+                      <Controller
+                        name={`tecnologias_requeridas.${index}`}
+                        control={control}
+                        render={({ field: inputField, fieldState: { error } }) => (
+                          <TextField
+                            {...inputField}
+                            fullWidth
+                            label={`Tecnología ${index + 1}`}
+                            error={!!error}
+                            helperText={error?.message}
                             disabled={isLoading}
-                            sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
-                          >
-                            Agregar Tecnología
-                          </Button>
-                          {typeof errors.tecnologias_requeridas === 'string' && (
-                            <Typography color="error" variant="body2">
-                              {errors.tecnologias_requeridas}
-                            </Typography>
-                          )}
-                        </Stack>
-                      )}
-                    </FieldArray>
-                  </Paper>
-
-                  {/* Información Adicional */}
-                  <Paper 
-                    elevation={0} 
-                    sx={{ 
-                      p: 3, 
-                      border: 1, 
-                      borderColor: 'divider',
-                      borderRadius: 2 
-                    }}
+                          />
+                        )}
+                      />
+                      <IconButton
+                        onClick={() => remove(index)}
+                        disabled={fields.length <= 1 || isLoading}
+                        color="error"
+                        sx={{ minWidth: 40 }}
+                      >
+                        <RemoveOutlined />
+                      </IconButton>
+                    </Stack>
+                  ))}
+                  <Button
+                    startIcon={<AddOutlined />}
+                    onClick={() => append('')}
+                    variant="outlined"
+                    disabled={isLoading}
+                    sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
                   >
-                    <Typography 
-                      variant="h6" 
-                      component="h3" 
-                      sx={{ 
-                        fontWeight: 600, 
-                        color: 'text.primary', 
-                        mb: 3 
-                      }}
-                    >
-                      Información Adicional
+                    Agregar Tecnología
+                  </Button>
+                  {errors.tecnologias_requeridas && (
+                    <Typography color="error" variant="body2">
+                      {errors.tecnologias_requeridas.message}
                     </Typography>
-                    <Stack spacing={3}>
-                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  )}
+                </Stack>
+              </Paper>
+
+              {/* Información Adicional */}
+              <Paper 
+                elevation={0} 
+                sx={{ 
+                  p: 3, 
+                  border: 1, 
+                  borderColor: 'divider',
+                  borderRadius: 2 
+                }}
+              >
+                <Typography 
+                  variant="h6" 
+                  component="h3" 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: 'text.primary', 
+                    mb: 3 
+                  }}
+                >
+                  Información Adicional
+                </Typography>
+                <Stack spacing={3}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <Controller
+                      name="ubicacion"
+                      control={control}
+                      render={({ field }) => (
                         <TextField
+                          {...field}
                           fullWidth
-                          name="ubicacion"
                           label="Ubicación (si no es remoto)"
-                          value={values.ubicacion}
-                          onChange={(e) => setFieldValue('ubicacion', e.target.value)}
                           disabled={isLoading}
                         />
+                      )}
+                    />
+                    <Controller
+                      name="moneda"
+                      control={control}
+                      render={({ field }) => (
                         <FormControl fullWidth disabled={isLoading}>
                           <InputLabel>Moneda</InputLabel>
                           <Select
-                            name="moneda"
-                            value={values.moneda}
-                            onChange={(e) => setFieldValue('moneda', e.target.value)}
+                            {...field}
                             label="Moneda"
                           >
                             <MenuItem value="USD">USD</MenuItem>
@@ -451,155 +475,184 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
                             <MenuItem value="">No especificar</MenuItem>
                           </Select>
                         </FormControl>
-                      </Stack>
+                      )}
+                    />
+                  </Stack>
 
-                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <Controller
+                      name="salario_rango_min"
+                      control={control}
+                      render={({ field, fieldState: { error } }) => (
                         <TextField
+                          {...field}
                           fullWidth
-                          name="salario_rango_min"
                           label="Salario Mínimo"
                           type="number"
-                          value={values.salario_rango_min}
-                          onChange={(e) => setFieldValue('salario_rango_min', e.target.value)}
-                          error={touched.salario_rango_min && !!errors.salario_rango_min}
-                          helperText={touched.salario_rango_min && errors.salario_rango_min}
+                          error={!!error}
+                          helperText={error?.message}
                           disabled={isLoading}
                         />
+                      )}
+                    />
+                    <Controller
+                      name="salario_rango_max"
+                      control={control}
+                      render={({ field, fieldState: { error } }) => (
                         <TextField
+                          {...field}
                           fullWidth
-                          name="salario_rango_max"
                           label="Salario Máximo"
                           type="number"
-                          value={values.salario_rango_max}
-                          onChange={(e) => setFieldValue('salario_rango_max', e.target.value)}
-                          error={touched.salario_rango_max && !!errors.salario_rango_max}
-                          helperText={touched.salario_rango_max && errors.salario_rango_max}
+                          error={!!error}
+                          helperText={error?.message}
                           disabled={isLoading}
                         />
-                      </Stack>
+                      )}
+                    />
+                  </Stack>
 
+                  <Controller
+                    name="responsabilidades"
+                    control={control}
+                    render={({ field }) => (
                       <TextField
+                        {...field}
                         fullWidth
-                        name="responsabilidades"
                         label="Responsabilidades"
                         multiline
                         rows={3}
-                        value={values.responsabilidades}
-                        onChange={(e) => setFieldValue('responsabilidades', e.target.value)}
                         disabled={isLoading}
                       />
+                    )}
+                  />
 
+                  <Controller
+                    name="requisitos"
+                    control={control}
+                    render={({ field }) => (
                       <TextField
+                        {...field}
                         fullWidth
-                        name="requisitos"
                         label="Requisitos"
                         multiline
                         rows={3}
-                        value={values.requisitos}
-                        onChange={(e) => setFieldValue('requisitos', e.target.value)}
                         disabled={isLoading}
                       />
+                    )}
+                  />
 
+                  <Controller
+                    name="beneficios"
+                    control={control}
+                    render={({ field }) => (
                       <TextField
+                        {...field}
                         fullWidth
-                        name="beneficios"
                         label="Beneficios"
                         multiline
                         rows={3}
-                        value={values.beneficios}
-                        onChange={(e) => setFieldValue('beneficios', e.target.value)}
                         disabled={isLoading}
                       />
+                    )}
+                  />
 
+                  <Controller
+                    name="fecha_cierre"
+                    control={control}
+                    render={({ field, fieldState: { error } }) => (
                       <TextField
+                        {...field}
                         fullWidth
-                        name="fecha_cierre"
                         label="Fecha de Cierre"
                         type="date"
                         InputLabelProps={{ shrink: true }}
-                        value={values.fecha_cierre}
-                        onChange={(e) => setFieldValue('fecha_cierre', e.target.value)}
-                        error={touched.fecha_cierre && !!errors.fecha_cierre}
-                        helperText={touched.fecha_cierre && errors.fecha_cierre}
+                        error={!!error}
+                        helperText={error?.message}
                         disabled={isLoading}
                       />
+                    )}
+                  />
 
+                  <Controller
+                    name="esta_activa"
+                    control={control}
+                    render={({ field }) => (
                       <FormControlLabel
                         control={
                           <Checkbox
-                            name="esta_activa"
-                            checked={values.esta_activa}
-                            onChange={(e) => setFieldValue('esta_activa', e.target.checked)}
+                            checked={field.value}
+                            onChange={field.onChange}
                             disabled={isLoading}
                           />
                         }
                         label="Vacante Activa (visible en el portal público)"
                       />
-                    </Stack>
-                  </Paper>
-
-                  {serverError && (
-                    <Alert severity="error" sx={{ borderRadius: 2 }}>
-                      {serverError}
-                    </Alert>
-                  )}
-
-                  <Divider />
-
-                  {/* Botones de acción */}
-                  <Stack direction="row" justifyContent="flex-end" spacing={2}>
-                    <Button
-                      variant="outlined"
-                      onClick={() => router.back()}
-                      disabled={isLoading}
-                      sx={{ textTransform: 'none' }}
-                    >
-                      Cancelar
-                    </Button>
-                    
-                    {/* Botón de Debug - Solo visible con ?debug=true */}
-                    {(process.env.NODE_ENV === 'development' || 
-                      (typeof window !== 'undefined' && window.location.search.includes('debug=true'))) && (
-                      <Button
-                        variant="outlined"
-                        color="warning"
-                        onClick={() => handleDebugSubmit(values)}
-                        disabled={isLoading}
-                        sx={{ 
-                          textTransform: 'none',
-                          borderColor: 'warning.main',
-                          color: 'warning.main',
-                          '&:hover': {
-                            borderColor: 'warning.dark',
-                            color: 'warning.dark',
-                            bgcolor: 'warning.50'
-                          }
-                        }}
-                      >
-                        🐛 DEBUG: Crear Vacante
-                      </Button>
                     )}
-                    
-                    <Button
-                      onClick={() => handleSubmit(values)}
-                      variant="contained"
-                      disabled={isLoading}
-                      startIcon={isLoading ? <CircularProgress size={16} /> : <SaveOutlined />}
-                      sx={{ 
-                        textTransform: 'none',
-                        minWidth: 140
-                      }}
-                    >
-                      {isLoading 
-                        ? 'Guardando...' 
-                        : (isEditMode ? 'Actualizar Vacante' : 'Crear Vacante')
-                      }
-                    </Button>
-                  </Stack>
+                  />
                 </Stack>
-              </div>
-            )}
-          </Formik>
+              </Paper>
+
+              {serverError && (
+                <Alert severity="error" sx={{ borderRadius: 2 }}>
+                  {serverError}
+                </Alert>
+              )}
+
+              <Divider />
+
+              {/* Botones de acción */}
+              <Stack direction="row" justifyContent="flex-end" spacing={2}>
+                <Button
+                  variant="outlined"
+                  onClick={() => router.back()}
+                  disabled={isLoading}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Cancelar
+                </Button>
+                
+                {/* Botón de Debug - Solo visible con ?debug=true */}
+                {(process.env.NODE_ENV === 'development' || 
+                  (typeof window !== 'undefined' && window.location.search.includes('debug=true'))) && (
+                  <Button
+                    variant="outlined"
+                    color="warning"
+                    onClick={() => handleDebugSubmit(watchedValues)}
+                    disabled={isLoading}
+                    sx={{ 
+                      textTransform: 'none',
+                      borderColor: 'warning.main',
+                      color: 'warning.main',
+                      '&:hover': {
+                        borderColor: 'warning.dark',
+                        color: 'warning.dark',
+                        bgcolor: 'warning.50'
+                      }
+                    }}
+                  >
+                    🐛 DEBUG: Crear Vacante
+                  </Button>
+                )}
+                
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isLoading || !isValid}
+                  startIcon={isLoading ? <CircularProgress size={16} /> : <SaveOutlined />}
+                  sx={{ 
+                    textTransform: 'none',
+                    minWidth: 140
+                  }}
+                >
+                  {isLoading 
+                    ? 'Guardando...' 
+                    : (isEditMode ? 'Actualizar Vacante' : 'Crear Vacante')
+                  }
+                </Button>
+              </Stack>
+            </Stack>
+          </form>
         </Box>
       </Paper>
     </Container>
