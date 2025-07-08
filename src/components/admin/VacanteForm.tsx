@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Formik, Form, FieldArray } from 'formik';
+import { Formik, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import { useRouter } from 'next/navigation';
 import {
@@ -263,11 +263,11 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
           <Formik
             initialValues={formInitialValues}
             validationSchema={validationSchema}
-            onSubmit={handleSubmit}
+            onSubmit={() => {}} // No se usa más
             enableReinitialize
           >
             {({ values, errors, touched, setFieldValue }) => (
-              <Form>
+              <div>
                 <Stack spacing={4}>
                   {/* Información Básica */}
                   <Paper 
@@ -584,7 +584,7 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
                     )}
                     
                     <Button
-                      type="submit"
+                      onClick={() => handleSubmit(values)}
                       variant="contained"
                       disabled={isLoading}
                       startIcon={isLoading ? <CircularProgress size={16} /> : <SaveOutlined />}
@@ -600,7 +600,7 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
                     </Button>
                   </Stack>
                 </Stack>
-              </Form>
+              </div>
             )}
           </Formik>
         </Box>
