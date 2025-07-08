@@ -322,8 +322,6 @@ export default async function AdminDashboardPage() {
           }}
         >
           <Card
-            component={Link}
-            href="/admin/vacantes"
             elevation={0}
             sx={{
               border: 1,
@@ -338,6 +336,7 @@ export default async function AdminDashboardPage() {
               }
             }}
           >
+             <Link href="/admin/vacantes">
             <CardContent sx={{ p: 3 }}>
               <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
                 <Box
@@ -370,6 +369,7 @@ export default async function AdminDashboardPage() {
                 Crear, editar y eliminar listados de vacantes disponibles
               </Typography>
             </CardContent>
+            </Link>
           </Card>
 
           <Card
