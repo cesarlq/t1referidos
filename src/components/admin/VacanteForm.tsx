@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { Vacante } from '@/components/VacanteCard';
 import { useFormWithSnackbar } from '@/hooks/useApiWithSnackbar';
+import { textToHtml, htmlToText, isHtmlContent } from '@/util/textToHtml';
 
 // Interfaz para los datos del formulario de vacante
 export interface VacanteFormData extends Omit<Partial<Vacante>, 'id' | 'tecnologias_requeridas' | 'modalidad' | 'moneda' | 'salario_rango_min' | 'salario_rango_max' | 'esta_activa'> {
@@ -91,15 +92,31 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
     titulo_puesto: initialData?.titulo_puesto || '',
     departamento: initialData?.departamento || '',
     modalidad: initialData?.modalidad || 'remoto',
-    descripcion_puesto: initialData?.descripcion_puesto || '',
+    descripcion_puesto: initialData?.descripcion_puesto 
+      ? (isHtmlContent(initialData.descripcion_puesto) 
+          ? htmlToText(initialData.descripcion_puesto) 
+          : initialData.descripcion_puesto)
+      : '',
     tecnologias_requeridas: initialData?.tecnologias_requeridas || [''],
     ubicacion: initialData?.ubicacion || '',
     salario_rango_min: initialData?.salario_rango_min ?? '',
     salario_rango_max: initialData?.salario_rango_max ?? '',
     moneda: initialData?.moneda as VacanteFormData['moneda'] || 'USD',
-    responsabilidades: initialData?.responsabilidades || '',
-    requisitos: initialData?.requisitos || '',
-    beneficios: initialData?.beneficios || '',
+    responsabilidades: initialData?.responsabilidades 
+      ? (isHtmlContent(initialData.responsabilidades) 
+          ? htmlToText(initialData.responsabilidades) 
+          : initialData.responsabilidades)
+      : '',
+    requisitos: initialData?.requisitos 
+      ? (isHtmlContent(initialData.requisitos) 
+          ? htmlToText(initialData.requisitos) 
+          : initialData.requisitos)
+      : '',
+    beneficios: initialData?.beneficios 
+      ? (isHtmlContent(initialData.beneficios) 
+          ? htmlToText(initialData.beneficios) 
+          : initialData.beneficios)
+      : '',
     fecha_cierre: initialData?.fecha_cierre ? new Date(initialData.fecha_cierre).toISOString().split('T')[0] : '',
     esta_activa: initialData?.esta_activa ?? true,
   };
@@ -110,6 +127,12 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
     // Limpiar valores numéricos vacíos a null para la BD
     const payload = {
       ...values,
+      // Convertir campos de texto a HTML para preservar formato
+      descripcion_puesto: textToHtml(values.descripcion_puesto),
+      responsabilidades: values.responsabilidades ? textToHtml(values.responsabilidades) : null,
+      requisitos: values.requisitos ? textToHtml(values.requisitos) : null,
+      beneficios: values.beneficios ? textToHtml(values.beneficios) : null,
+      // Limpiar valores numéricos vacíos a null para la BD
       salario_rango_min: values.salario_rango_min === '' ? null : Number(values.salario_rango_min),
       salario_rango_max: values.salario_rango_max === '' ? null : Number(values.salario_rango_max),
       moneda: values.moneda === '' ? null : values.moneda,
@@ -260,7 +283,11 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
                         value={values.descripcion_puesto}
                         onChange={(e) => setFieldValue('descripcion_puesto', e.target.value)}
                         error={touched.descripcion_puesto && !!errors.descripcion_puesto}
-                        helperText={touched.descripcion_puesto && errors.descripcion_puesto}
+                        helperText={
+                          touched.descripcion_puesto && errors.descripcion_puesto 
+                            ? errors.descripcion_puesto 
+                            : "Los espacios, tabs y saltos de línea se preservarán en la visualización"
+                        }
                         disabled={isLoading}
                       />
                     </Stack>
@@ -409,6 +436,7 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
                         rows={3}
                         value={values.responsabilidades}
                         onChange={(e) => setFieldValue('responsabilidades', e.target.value)}
+                        helperText="Los espacios, tabs y saltos de línea se preservarán en la visualización"
                         disabled={isLoading}
                       />
 
@@ -420,6 +448,7 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
                         rows={3}
                         value={values.requisitos}
                         onChange={(e) => setFieldValue('requisitos', e.target.value)}
+                        helperText="Los espacios, tabs y saltos de línea se preservarán en la visualización"
                         disabled={isLoading}
                       />
 
@@ -431,6 +460,7 @@ const VacanteForm: React.FC<VacanteFormProps> = ({ initialData, onSubmitAction, 
                         rows={3}
                         value={values.beneficios}
                         onChange={(e) => setFieldValue('beneficios', e.target.value)}
+                        helperText="Los espacios, tabs y saltos de línea se preservarán en la visualización"
                         disabled={isLoading}
                       />
 
