@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -7,12 +7,16 @@ import {
   Chip, 
   Box, 
   Stack,
-  Divider
+  Divider,
+  Collapse,
+  IconButton
 } from '@mui/material';
 import { 
   LocationOnOutlined, 
   WorkOutlineOutlined, 
-  AttachMoneyOutlined 
+  AttachMoneyOutlined,
+  ExpandMoreOutlined,
+  ExpandLessOutlined
 } from '@mui/icons-material';
 import HTMLRenderer from './HTMLRenderer';
 
@@ -47,6 +51,12 @@ interface VacanteCardProps {
 }
 
 const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
+
   return (
     <Card 
       elevation={0}
@@ -174,22 +184,54 @@ const VacanteCard: React.FC<VacanteCardProps> = ({ vacante, onReferirClick }) =>
 
             {/* Description Section */}
             <Box sx={{ paddingTop: 2 }}>
-              <Typography 
-                variant="body2" 
-                color="text.secondary" 
-                sx={{ fontWeight: 500, mb: 1 }}
-              >
-                Descripción del Puesto:
-              </Typography>
-              <HTMLRenderer 
-                content={vacante.descripcion_puesto}
-                maxLines={4}
-                sx={{ 
-                  fontSize: '0.875rem',
-                  color: 'text.primary',
-                  lineHeight: 1.5
-                }}
-              />
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary" 
+                  sx={{ fontWeight: 500 }}
+                >
+                  Descripción del Puesto:
+                </Typography>
+                <IconButton
+                  onClick={handleExpandClick}
+                  size="small"
+                  sx={{ 
+                    color: 'text.secondary',
+                    '&:hover': { 
+                      color: 'primary.main',
+                      bgcolor: 'primary.50' 
+                    }
+                  }}
+                >
+                  {expanded ? <ExpandLessOutlined /> : <ExpandMoreOutlined />}
+                </IconButton>
+              </Box>
+              
+              {/* Vista resumida */}
+              {!expanded && (
+                <HTMLRenderer 
+                  content={vacante.descripcion_puesto}
+                  maxLines={3}
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    color: 'text.primary',
+                    lineHeight: 1.5
+                  }}
+                />
+              )}
+              
+              {/* Vista expandida */}
+              <Collapse in={expanded} timeout="auto" unmountOnExit>
+                <HTMLRenderer 
+                  content={vacante.descripcion_puesto}
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    color: 'text.primary',
+                    lineHeight: 1.5,
+                    mt: expanded ? 1 : 0
+                  }}
+                />
+              </Collapse>
             </Box>
           </Box>
 
