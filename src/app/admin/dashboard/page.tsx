@@ -1,6 +1,5 @@
 import React from 'react';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
   Box,
@@ -8,7 +7,6 @@ import {
   Typography,
   Card,
   CardContent,
-  Button,
   Divider,
   Stack,
   List,
@@ -21,36 +19,9 @@ import {
   PeopleOutlined,
   WorkOutlineOutlined,
   BusinessOutlined,
-  VisibilityOutlined,
-  LogoutOutlined
+  VisibilityOutlined
 } from '@mui/icons-material';
 
-// Componente para el botón de Logout
-const LogoutButton = () => {
-  const handleLogout = async () => {
-    "use server";
-    const supabase = createSupabaseServerClient();
-    await supabase.auth.signOut();
-    redirect('/admin/login');
-  };
-
-  return (
-    <form action={handleLogout}>
-      <Button
-        type="submit"
-        variant="outlined"
-        color="error"
-        startIcon={<LogoutOutlined />}
-        sx={{
-          textTransform: 'none',
-          fontWeight: 500
-        }}
-      >
-        Cerrar Sesión
-      </Button>
-    </form>
-  );
-};
 
 // Funciones para obtener métricas
 async function getTotalReferencias(): Promise<number> {
@@ -122,7 +93,7 @@ export default async function AdminDashboardPage() {
               Bienvenido al sistema de gestión de referidos T1
             </Typography>
           </Box>
-          <LogoutButton />
+          {/* <LogoutButton /> */}
         </Stack>
         <Divider />
       </Box>

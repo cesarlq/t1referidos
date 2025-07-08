@@ -140,15 +140,15 @@ export default function AdminLayout({
                       href={item.href}
                       startIcon={item.icon}
                       sx={{
-                        color: 'white',
+                        color: 'white!important',
                         textTransform: 'none',
                         fontWeight: 500,
                         px: 2,
                         py: 1,
                         borderRadius: 2,
                         '&:hover': {
-                          bgcolor: 'grey.100',
-                          color: 'black',
+                          bgcolor: 'grey.100!important',
+                          color: 'black!important',
                         }
                       }}
                     >
