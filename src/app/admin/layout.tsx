@@ -147,7 +147,7 @@ export default function AdminLayout({
                         py: 1,
                         borderRadius: 2,
                         '&:hover': {
-                          bgcolor: 'grey.100!important',
+                          bgcolor: 'grey.100',
                           color: 'black!important',
                         }
                       }}
