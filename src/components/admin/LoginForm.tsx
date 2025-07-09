@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
   Box,
@@ -18,7 +18,6 @@ import { LoginOutlined } from '@mui/icons-material';
 import { useAuthWithSnackbar } from '@/hooks/useApiWithSnackbar';
 
 export default function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createSupabaseBrowserClient();
   const [email, setEmail] = useState('');
@@ -77,15 +76,9 @@ export default function LoginForm() {
         }
       }
 
-      // Primero redirigir, luego refrescar la nueva página.
-      // Esto evita que el middleware redirija desde /admin/login al dashboard
-      // antes de que hayamos tenido la oportunidad de ir a `redirectTo`.
-      router.push(redirectTo);
-      // Considerar si router.refresh() es necesario aquí o si la navegación a la nueva ruta
-      // ya carga los datos frescos. Si la nueva página usa Server Components que dependen de la sesión,
-      // un refresh podría ser útil, pero a menudo la navegación a una nueva ruta ya hace lo necesario.
-      // Por ahora, lo comentaremos para ver el comportamiento, ya que el middleware se ejecutará en la nueva ruta.
-      // router.refresh();
+      // Usar window.location.href para forzar una navegación completa
+      // Esto asegura que el middleware se ejecute correctamente en producción
+      window.location.href = redirectTo;
 
     } else {
       setError('Error al iniciar sesión. Por favor, verifica tus credenciales.');

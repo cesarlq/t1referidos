@@ -35,9 +35,15 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
+          // Update request cookies for consistency
+          request.cookies.set({ name, value, ...options });
+          // Update response cookies
           response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
+          // Update request cookies for consistency
+          request.cookies.set({ name, value: '', ...options });
+          // Update response cookies
           response.cookies.set({ name, value: '', ...options });
         },
       },
