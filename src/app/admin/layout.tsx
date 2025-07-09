@@ -27,6 +27,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useAuthWithSnackbar } from '@/hooks/useApiWithSnackbar';
 import  T1ReferidosIcon  from '@/assets/svg-icons/T1Referidos.svg';
 
+export const dynamic = 'force-dynamic';
 
 export default function AdminLayout({
   children,
