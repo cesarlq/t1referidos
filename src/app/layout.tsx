@@ -4,6 +4,8 @@ import "./globals.css";
 import ThemeRegistry from './ThemeRegistry'; // Import the new client component
 import { SnackbarProvider } from '@/contexts/SnackbarContext';
 
+export const dynamic = 'force-dynamic';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
