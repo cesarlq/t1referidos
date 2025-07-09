@@ -11,10 +11,10 @@ interface AdminVacante extends Vacante {
   created_at?: string;
   updated_at?: string;
 }
+export const dynamic = 'force-dynamic';
 
 async function getTodasLasVacantes(): Promise<AdminVacante[]> {
   const supabase = createSupabaseServerClient();
-  
   // Obtener todas las vacantes
   const { data: vacantesData, error: vacantesError } = await supabase
     .from('vacantes')
