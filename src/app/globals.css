@@ -4,12 +4,12 @@
 :root {
   --background: #ffffff;
   --foreground: #4c4c4c;
-  --primary: #D90429;
+  --primary: #db3b2b;
   --secondary: #fadede;
   --neutral-light: #E7E7E7;
   --neutral-medium: #898989;
   --neutral-dark: #4c4c4c;
-  --error: #FF0000;
+  --error: #db3b2b ;
   --success: #51AF70;
   --border-radius: 10px;
   --border-radius-sm: 7px;
